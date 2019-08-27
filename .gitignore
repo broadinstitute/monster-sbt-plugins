@@ -1,0 +1,10 @@
+# App-specific:
+application.conf
+
+# sbt:
+target/
+
+# IDEs:
+.idea/
+.metals/
+.bloop/
