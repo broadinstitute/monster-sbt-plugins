@@ -91,6 +91,8 @@ object BasePlugin extends AutoPlugin {
   override def projectSettings: Seq[Def.Setting[_]] =
     Seq.concat(
       Defaults.itSettings,
+      // Make sure integration-test sources are formatted, too.
+      inConfig(IntegrationTest)(ScalafmtPlugin.scalafmtConfigSettings),
       Seq(
         addCompilerPlugin(
           "com.olegpy" %% "better-monadic-for" % BetterMonadicForVersion
