@@ -18,8 +18,9 @@ import scoverage.ScoverageSbtPlugin
   *   - Build-info injection
   */
 object BasePlugin extends AutoPlugin {
-  import ScalafmtPlugin.autoImport._
   import BuildInfoPlugin.autoImport._
+  import DynVerPlugin.autoImport._
+  import ScalafmtPlugin.autoImport._
 
   // Automatically apply our base settings to every project.
   override def requires: Plugins =
@@ -81,7 +82,9 @@ object BasePlugin extends AutoPlugin {
       IO.write(targetFile, ScalafmtConf)
       targetFile
     },
-    scalafmtOnCompile := true
+    scalafmtOnCompile := true,
+    // Use a Docker-compatible / URL-friendly separator for version components.
+    dynverSeparator := "-"
   )
 
   val BetterMonadicForVersion = "0.3.1"
