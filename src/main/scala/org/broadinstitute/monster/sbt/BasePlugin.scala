@@ -1,16 +1,23 @@
 package org.broadinstitute.monster.sbt
 
 import org.scalafmt.sbt.ScalafmtPlugin
-import sbt.{Def, _}
+import sbt._
 import sbt.Keys._
 import sbt.plugins.JvmPlugin
 import sbtdynver.DynVerPlugin
 
-object MonsterBasePlugin extends AutoPlugin {
+/**
+  * Plugin containing settings which should be applied to _every_ sbt project
+  * managed by Monster, including:
+  *   - Compiler flags
+  *   - Auto-versioning
+  *   - Code formatting
+  */
+object BasePlugin extends AutoPlugin {
   import ScalafmtPlugin.autoImport._
 
   // Automatically apply our base settings to every project.
-  override def requires = JvmPlugin && DynVerPlugin && ScalafmtPlugin
+  override def requires: Plugins = JvmPlugin && DynVerPlugin && ScalafmtPlugin
   override def trigger = allRequirements
 
   val ScalafmtVersion = "2.1.0-RC1"
@@ -73,22 +80,29 @@ object MonsterBasePlugin extends AutoPlugin {
 
   val BetterMonadicForVersion = "0.3.1"
 
-  override def projectSettings: Seq[Def.Setting[_]] = Seq(
-    addCompilerPlugin(
-      "com.olegpy" %% "better-monadic-for" % BetterMonadicForVersion
-    ),
-    Compile / console / scalacOptions := (Compile / scalacOptions).value
-      .filterNot(
-        Set(
-          "-Xfatal-warnings",
-          "-Xlint",
-          "-Ywarn-unused",
-          "-Ywarn-unused-import"
-        )
-      ),
-    Compile / doc / scalacOptions += "-no-link-warnings",
-    // Avoid classpath shenanigans by always forking a new JVM when running code.
-    Runtime / fork := true,
-    Test / fork := true
-  )
+  override def projectConfigurations: Seq[Configuration] = Seq(IntegrationTest)
+
+  override def projectSettings: Seq[Def.Setting[_]] =
+    Seq.concat(
+      Defaults.itSettings,
+      Seq(
+        addCompilerPlugin(
+          "com.olegpy" %% "better-monadic-for" % BetterMonadicForVersion
+        ),
+        Compile / console / scalacOptions := (Compile / scalacOptions).value
+          .filterNot(
+            Set(
+              "-Xfatal-warnings",
+              "-Xlint",
+              "-Ywarn-unused",
+              "-Ywarn-unused-import"
+            )
+          ),
+        Compile / doc / scalacOptions += "-no-link-warnings",
+        // Avoid classpath shenanigans by always forking a new JVM when running code.
+        Runtime / fork := true,
+        Test / fork := true,
+        IntegrationTest / fork := true
+      )
+    )
 }

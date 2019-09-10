@@ -1,5 +1,6 @@
 lazy val `monster-sbt-plugins` = project
   .in(file("."))
+  .enablePlugins(LibraryPlugin)
   .settings(
     sbtPlugin := true,
     addSbtPlugin("com.dwijnand" % "sbt-dynver" % "4.0.0"),
