@@ -50,8 +50,20 @@ object LibraryPlugin extends AutoPlugin {
 
   /** Maven-style resolver for our Artifactory instance. */
   private lazy val artifactoryResolver = Def.task {
+    val isPlugin = sbtPlugin.value
     val target = if (isSnapshot.value) "snapshot" else "release"
-    artifactoryRealm at s"https://$artifactoryHost/broadinstitute/libs-$target-local"
+    val modulePattern = if (isPlugin) {
+      "[module](_[scalaVersion])(_[sbtVersion])"
+    } else {
+      "[module](_[scalaVersion])"
+    }
+    val pattern =
+      s"[organisation]/$modulePattern/[revision]/$modulePattern-[revision](-[classifier]).[ext]"
+
+    Resolver.url(
+      artifactoryRealm,
+      new URL(s"https://$artifactoryHost/broadinstitute/libs-$target-local")
+    )(Patterns().withArtifactPatterns(Vector(pattern)).withIsMavenCompatible(true))
   }
 
   override def buildSettings: Seq[Def.Setting[_]] = Seq(
