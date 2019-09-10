@@ -1,0 +1,11 @@
+# App-specific:
+application.conf
+
+# sbt:
+target/
+.scalafmt.conf
+
+# IDEs:
+.idea/
+.metals/
+.bloop/
