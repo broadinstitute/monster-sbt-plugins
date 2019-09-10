@@ -4,7 +4,9 @@ import org.scalafmt.sbt.ScalafmtPlugin
 import sbt._
 import sbt.Keys._
 import sbt.plugins.JvmPlugin
+import sbtbuildinfo.BuildInfoPlugin
 import sbtdynver.DynVerPlugin
+import scoverage.ScoverageSbtPlugin
 
 /**
   * Plugin containing settings which should be applied to _every_ sbt project
@@ -12,12 +14,16 @@ import sbtdynver.DynVerPlugin
   *   - Compiler flags
   *   - Auto-versioning
   *   - Code formatting
+  *   - Test coverage generators
+  *   - Build-info injection
   */
 object BasePlugin extends AutoPlugin {
   import ScalafmtPlugin.autoImport._
+  import BuildInfoPlugin.autoImport._
 
   // Automatically apply our base settings to every project.
-  override def requires: Plugins = JvmPlugin && DynVerPlugin && ScalafmtPlugin
+  override def requires: Plugins =
+    JvmPlugin && DynVerPlugin && ScalafmtPlugin && ScoverageSbtPlugin && BuildInfoPlugin
   override def trigger = allRequirements
 
   val ScalafmtVersion = "2.1.0-RC1"
@@ -102,7 +108,12 @@ object BasePlugin extends AutoPlugin {
         // Avoid classpath shenanigans by always forking a new JVM when running code.
         Runtime / fork := true,
         Test / fork := true,
-        IntegrationTest / fork := true
+        IntegrationTest / fork := true,
+        // De-duplicate BuildInfo objects so our projects can depend on one another
+        // without conflicts.
+        buildInfoPackage := (ThisBuild / organization).value,
+        buildInfoObject := name.value.split('-').map(_.capitalize).mkString + "BuildInfo",
+        buildInfoOptions += BuildInfoOption.BuildTime
       )
     )
 }
