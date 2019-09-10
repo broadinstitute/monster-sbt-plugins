@@ -14,16 +14,21 @@ object LibraryPlugin extends AutoPlugin {
   override def requires: Plugins = BasePlugin
 
   /** Realm reported by our Artifactory instance. */
-  private val artifactoryRealm = "Artifactory Realm"
+  val ArtifactoryRealm = "Artifactory Realm"
 
   /** Hostname of our Artifactory instance. */
-  private val artifactoryHost = "broadinstitute.jfrog.io"
+  val ArtifactoryHost = "broadinstitute.jfrog.io"
 
   /** Environment variable expected to contain a username for our Artifactory. */
-  private val artifactoryUsernameVar = "ARTIFACTORY_USERNAME"
+  val ArtifactoryUsernameVar = "ARTIFACTORY_USERNAME"
 
   /** Environment variable expected to contain a password for our Artifactory. */
-  private val artifactoryPasswordVar = "ARTIFACTORY_PASSWORD"
+  val ArtifactoryPasswordVar = "ARTIFACTORY_PASSWORD"
+
+  def fullResolverPath(isSnapshot: Boolean): String = {
+    val target = if (isSnapshot) "snapshot" else "release"
+    s"https://$ArtifactoryHost/broadinstitute/libs-$target-local"
+  }
 
   /**
     * Credentials which can authenticate the build tool with our Artifactory.
@@ -33,59 +38,18 @@ object LibraryPlugin extends AutoPlugin {
     */
   private lazy val artifactoryCredentials = Def.setting {
     val cred = for {
-      username <- sys.env.get(artifactoryUsernameVar)
-      password <- sys.env.get(artifactoryPasswordVar)
+      username <- sys.env.get(ArtifactoryUsernameVar)
+      password <- sys.env.get(ArtifactoryPasswordVar)
     } yield {
-      Credentials(artifactoryRealm, artifactoryHost, username, password)
+      Credentials(ArtifactoryRealm, ArtifactoryHost, username, password)
     }
 
     cred.orElse {
       // SBT's logging comes from a task, and tasks can't be used inside settings, so we have to roll our own warning...
       println(
-        s"[${scala.Console.YELLOW}warn${scala.Console.RESET}] $artifactoryUsernameVar or $artifactoryPasswordVar not set, publishing will fail!"
+        s"[${scala.Console.YELLOW}warn${scala.Console.RESET}] $ArtifactoryUsernameVar or $ArtifactoryPasswordVar not set, publishing will fail!"
       )
       None
-    }
-  }
-
-  /**
-    * Maven-style resolver for our Artifactory instance.
-    *
-    * For some reason, sbt overrides artifact generation for its plugins such
-    * that they become incompatible with the Maven spec. We hack the settings
-    * here in an attempt to make them work.
-    */
-  private lazy val artifactoryResolver = Def.task {
-    val isPlugin = sbtPlugin.value
-    val target = if (isSnapshot.value) "snapshot" else "release"
-    val modulePattern = if (isPlugin) {
-      "[module]"
-    } else {
-      "[module](_[scalaVersion])"
-    }
-    val pattern =
-      s"[organisation]/$modulePattern/[revision]/$modulePattern-[revision](-[classifier]).[ext]"
-
-    Resolver.url(
-      artifactoryRealm,
-      new URL(s"https://$artifactoryHost/broadinstitute/libs-$target-local")
-    )(Patterns().withArtifactPatterns(Vector(pattern)).withIsMavenCompatible(true))
-  }
-
-  /**
-    * Maven-compatible module ID for the project loading this plugin.
-    *
-    * This is only different from the default module ID for sbt plugins.
-    */
-  private lazy val mavenCompatProjectId = Def.setting {
-    val isPlugin = sbtPlugin.value
-    val baseId = projectID.value
-    if (isPlugin) {
-      baseId.withCrossVersion(
-        CrossVersion.constant(s"${scalaBinaryVersion.value}_${sbtBinaryVersion.value}")
-      )
-    } else {
-      baseId
     }
   }
 
@@ -94,8 +58,7 @@ object LibraryPlugin extends AutoPlugin {
   )
 
   override def projectSettings: Seq[Def.Setting[_]] = Seq(
-    publishTo := Some(artifactoryResolver.value),
-    credentials ++= artifactoryCredentials.value.toSeq,
-    projectID := mavenCompatProjectId.value
+    publishTo := Some(ArtifactoryRealm at fullResolverPath(isSnapshot.value)),
+    credentials ++= artifactoryCredentials.value.toSeq
   )
 }
