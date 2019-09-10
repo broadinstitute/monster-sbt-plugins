@@ -48,12 +48,18 @@ object LibraryPlugin extends AutoPlugin {
     }
   }
 
-  /** Maven-style resolver for our Artifactory instance. */
+  /**
+    * Maven-style resolver for our Artifactory instance.
+    *
+    * For some reason, sbt overrides artifact generation for its plugins such
+    * that they become incompatible with the Maven spec. We hack the settings
+    * here in an attempt to make them work.
+    */
   private lazy val artifactoryResolver = Def.task {
     val isPlugin = sbtPlugin.value
     val target = if (isSnapshot.value) "snapshot" else "release"
     val modulePattern = if (isPlugin) {
-      "[module](_[scalaVersion])(_[sbtVersion])"
+      "[module]"
     } else {
       "[module](_[scalaVersion])"
     }
@@ -66,12 +72,30 @@ object LibraryPlugin extends AutoPlugin {
     )(Patterns().withArtifactPatterns(Vector(pattern)).withIsMavenCompatible(true))
   }
 
+  /**
+    * Maven-compatible module ID for the project loading this plugin.
+    *
+    * This is only different from the default module ID for sbt plugins.
+    */
+  private lazy val mavenCompatProjectId = Def.setting {
+    val isPlugin = sbtPlugin.value
+    val baseId = projectID.value
+    if (isPlugin) {
+      baseId.withCrossVersion(
+        CrossVersion.constant(s"${scalaBinaryVersion.value}_${sbtBinaryVersion.value}")
+      )
+    } else {
+      baseId
+    }
+  }
+
   override def buildSettings: Seq[Def.Setting[_]] = Seq(
     dynverSonatypeSnapshots := true
   )
 
   override def projectSettings: Seq[Def.Setting[_]] = Seq(
     publishTo := Some(artifactoryResolver.value),
-    credentials ++= artifactoryCredentials.value.toSeq
+    credentials ++= artifactoryCredentials.value.toSeq,
+    projectID := mavenCompatProjectId.value
   )
 }
