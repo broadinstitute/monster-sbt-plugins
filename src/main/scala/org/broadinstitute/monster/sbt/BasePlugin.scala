@@ -27,7 +27,7 @@ object BasePlugin extends AutoPlugin {
     JvmPlugin && DynVerPlugin && ScalafmtPlugin && ScoverageSbtPlugin && BuildInfoPlugin
   override def trigger = allRequirements
 
-  val ScalafmtVersion = "2.1.0-RC1"
+  val ScalafmtVersion = "2.0.1"
 
   val ScalafmtConf: String =
     s"""version = "$ScalafmtVersion"
