@@ -50,33 +50,45 @@ object BasePlugin extends AutoPlugin {
 
   override def buildSettings: Seq[Def.Setting[_]] = Seq(
     organization := "org.broadinstitute.monster",
-    scalaVersion := "2.12.8",
-    scalacOptions ++= Seq(
-      "-deprecation",
-      "-encoding",
-      "UTF-8",
-      "-explaintypes",
-      "-feature",
-      "-target:jvm-1.8",
-      "-unchecked",
-      "-Xcheckinit",
-      "-Xfatal-warnings",
-      "-Xfuture",
-      "-Xlint",
-      "-Xmax-classfile-name",
-      "200",
-      "-Yno-adapted-args",
-      "-Ypartial-unification",
-      "-Ywarn-dead-code",
-      "-Ywarn-extra-implicit",
-      "-Ywarn-inaccessible",
-      "-Ywarn-infer-any",
-      "-Ywarn-nullary-override",
-      "-Ywarn-nullary-unit",
-      "-Ywarn-numeric-widen",
-      "-Ywarn-unused",
-      "-Ywarn-value-discard"
-    ),
+    scalaVersion := "2.12.10",
+    scalacOptions ++= {
+      val snapshot = isSnapshot.value
+      val base = Seq(
+        "-deprecation",
+        "-encoding",
+        "UTF-8",
+        "-explaintypes",
+        "-feature",
+        "-target:jvm-1.8",
+        "-unchecked",
+        "-Xfatal-warnings",
+        "-Xfuture",
+        "-Xlint",
+        "-Xmax-classfile-name",
+        "200",
+        "-Yno-adapted-args",
+        "-Ypartial-unification",
+        "-Ywarn-dead-code",
+        "-Ywarn-extra-implicit",
+        "-Ywarn-inaccessible",
+        "-Ywarn-infer-any",
+        "-Ywarn-nullary-override",
+        "-Ywarn-nullary-unit",
+        "-Ywarn-numeric-widen",
+        "-Ywarn-unused",
+        "-Ywarn-value-discard"
+      )
+
+      if (snapshot) {
+        // -Xcheckinit adds extra synchronization logic / null checks to every
+        // field access. It's awesome for catching problems with initialization
+        // order when doing weird things with inheritance, but it can have
+        // nontrivial performance impact, so we only enable it for SNAPSHOT builds.
+        base :+ "-Xcheckinit"
+      } else {
+        base
+      }
+    },
     scalafmtConfig := {
       val targetFile = (ThisBuild / baseDirectory).value / ".scalafmt.conf"
       IO.write(targetFile, ScalafmtConf)
