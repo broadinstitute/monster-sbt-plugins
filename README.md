@@ -44,7 +44,7 @@ addSbtPlugin("org.broadinstitute.monster" % "monster-sbt-plugins" % "<version>")
 Eventually we intend to publish a higher-level template repository containing this boilerplate.
 
 ## Available plugins
-| Plugin Name | Auto-applied? | Description |
-| ----------- | ------------- | ----------- |
-| `BasePlugin` | yes | Core settings for compilation, formatting, versioning, and test coverage. |
-| `LibraryPlugin` | no | Settings for publishing to Broad's Artifactory instance. |
+| Plugin Name | Description |
+| ----------- | ----------- |
+| `BasePlugin` | Core settings for compilation, formatting, versioning, and test coverage. |
+| `LibraryPlugin` | Settings for publishing to Broad's Artifactory instance. |

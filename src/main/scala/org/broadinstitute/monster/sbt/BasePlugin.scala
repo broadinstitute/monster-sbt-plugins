@@ -25,7 +25,6 @@ object BasePlugin extends AutoPlugin {
   // Automatically apply our base settings to every project.
   override def requires: Plugins =
     JvmPlugin && DynVerPlugin && ScalafmtPlugin && ScoverageSbtPlugin && BuildInfoPlugin
-  override def trigger = allRequirements
 
   val ScalafmtVersion = "2.0.1"
 
@@ -123,7 +122,7 @@ object BasePlugin extends AutoPlugin {
           ),
         Compile / doc / scalacOptions += "-no-link-warnings",
         // Avoid classpath shenanigans by always forking a new JVM when running code.
-        Runtime / fork := true,
+        Compile / run / fork := true,
         Test / fork := true,
         IntegrationTest / fork := true,
         // De-duplicate BuildInfo objects so our projects can depend on one another
