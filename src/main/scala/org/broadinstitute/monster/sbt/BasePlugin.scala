@@ -26,7 +26,7 @@ object BasePlugin extends AutoPlugin {
   override def requires: Plugins =
     JvmPlugin && DynVerPlugin && ScalafmtPlugin && ScoverageSbtPlugin && BuildInfoPlugin
 
-  val ScalafmtVersion = "2.0.1"
+  val ScalafmtVersion = "2.1.0"
 
   val ScalafmtConf: String =
     s"""version = "$ScalafmtVersion"
@@ -108,6 +108,10 @@ object BasePlugin extends AutoPlugin {
       // Make sure integration-test sources are formatted, too.
       inConfig(IntegrationTest)(ScalafmtPlugin.scalafmtConfigSettings),
       Seq(
+        resolvers ++= Seq(
+          "Broad Artifactory Releases" at "https://broadinstitute.jfrog.io/broadinstitute/libs-release/",
+          "Broad Artifactory Snapshots" at "https://broadinstitute.jfrog.io/broadinstitute/libs-snapshot/"
+        ),
         addCompilerPlugin(
           "com.olegpy" %% "better-monadic-for" % BetterMonadicForVersion
         ),
