@@ -46,5 +46,6 @@ Eventually we intend to publish a higher-level template repository containing th
 ## Available plugins
 | Plugin Name | Description |
 | ----------- | ----------- |
-| `BasePlugin` | Core settings for compilation, formatting, versioning, and test coverage. |
-| `LibraryPlugin` | Settings for publishing to Broad's Artifactory instance. |
+| `MonsterBasePlugin` | Core settings for compilation, formatting, versioning, and test coverage. |
+| `MonsterLibraryPlugin` | Settings for publishing to Broad's Artifactory instance. |
+| `MonsterDockerPlugin` | Settings for publishing to DSP's public GCR repository. |
