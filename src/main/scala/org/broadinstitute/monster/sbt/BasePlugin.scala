@@ -26,7 +26,7 @@ object BasePlugin extends AutoPlugin {
   override def requires: Plugins =
     JvmPlugin && DynVerPlugin && ScalafmtPlugin && ScoverageSbtPlugin && BuildInfoPlugin
 
-  val ScalafmtVersion = "2.1.0"
+  val ScalafmtVersion = "2.2.2"
 
   val ScalafmtConf: String =
     s"""version = "$ScalafmtVersion"
