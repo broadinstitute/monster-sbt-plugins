@@ -17,7 +17,7 @@ import scoverage.ScoverageSbtPlugin
   *   - Test coverage generators
   *   - Build-info injection
   */
-object BasePlugin extends AutoPlugin {
+object MonsterBasePlugin extends AutoPlugin {
   import BuildInfoPlugin.autoImport._
   import DynVerPlugin.autoImport._
   import ScalafmtPlugin.autoImport._

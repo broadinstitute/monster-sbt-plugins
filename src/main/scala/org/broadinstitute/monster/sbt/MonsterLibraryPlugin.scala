@@ -8,10 +8,10 @@ import sbtdynver.DynVerPlugin
   * Plugin which should be applied to Monster sub-projects that need
   * to be published as library jars for use in other projects.
   */
-object LibraryPlugin extends AutoPlugin {
+object MonsterLibraryPlugin extends AutoPlugin {
   import DynVerPlugin.autoImport._
 
-  override def requires: Plugins = BasePlugin
+  override def requires: Plugins = MonsterBasePlugin
 
   /** Realm reported by our Artifactory instance. */
   val ArtifactoryRealm = "Artifactory Realm"
