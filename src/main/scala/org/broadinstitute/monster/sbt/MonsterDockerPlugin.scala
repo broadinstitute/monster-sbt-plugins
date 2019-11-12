@@ -22,6 +22,12 @@ object MonsterDockerPlugin extends AutoPlugin with LinuxKeys with NativePackager
     dockerLabels := Map("VERSION" -> version.value),
     Docker / defaultLinuxInstallLocation := "/app",
     Docker / maintainer := "monster@broadinstitute.org",
+    // sbt-native-packager tries to do a good thing by generating a non-root user
+    // to run the container, but so many systems assume images are running as root
+    // that using a different user ends up breaking things (i.e. k8s persistent
+    // volumes are chmod-ed to be writeable only by "root").
+    Docker / daemonUserUid := None,
+    Docker / daemonUser := "root",
     // Make our CI life easier and set up publish delegation here.
     publish := (Docker / publish).value,
     publishLocal := (Docker / publishLocal).value
