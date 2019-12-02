@@ -1,3 +1,9 @@
+val circeVersion = "0.12.3"
+val circeDerivationVersion = "0.12.0-M7"
+val enumeratumVersion = "1.5.13"
+val enumeratumCirceVersion = "1.5.22"
+val scalaTestVersion = "3.1.0"
+
 val commonSettings = Seq(
   sbtPlugin := true,
   // Maven-style publishing is unforgivingly broken for sbt plugins.
@@ -12,6 +18,11 @@ val commonSettings = Seq(
   }
 )
 
+lazy val `monster-sbt-plugins` = project
+  .in(file("."))
+  .settings(publish / skip := true)
+  .aggregate(`sbt-plugins-core`, `sbt-plugins-jade`)
+
 /** TODO */
 lazy val `sbt-plugins-core` = project
   .in(file("plugins/core"))
@@ -23,4 +34,21 @@ lazy val `sbt-plugins-core` = project
     addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.4.0"),
     addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.2.1"),
     addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.6.0")
+  )
+
+/** TODO */
+lazy val `sbt-plugins-jade` = project
+  .in(file("plugins/jade"))
+  .enablePlugins(MonsterLibraryPlugin)
+  .dependsOn(`sbt-plugins-core`)
+  .settings(
+    commonSettings,
+    libraryDependencies ++= Seq(
+      "com.beachape" %% "enumeratum" % enumeratumVersion,
+      "com.beachape" %% "enumeratum-circe" % enumeratumCirceVersion,
+      "io.circe" %% "circe-core" % circeVersion,
+      "io.circe" %% "circe-parser" % circeVersion,
+      "io.circe" %% "circe-derivation" % circeDerivationVersion,
+      "org.scalatest" %% "scalatest" % scalaTestVersion % Test
+    )
   )
