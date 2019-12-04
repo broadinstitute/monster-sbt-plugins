@@ -202,11 +202,11 @@ class JadeTableGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues
   it should behave like checkFailedGeneration(
     "catch invalid table identifiers",
     """{ "name": "tableOne", "columns": [] }""",
-    "Illegal character 'O'"
+    "not a valid Jade identifier"
   )
   it should behave like checkFailedGeneration(
     "catch invalid column identifiers",
     """{ "name": "ok_table", "columns": [{ "name": "bad-column", "datatype": "string" }] }""",
-    "Illegal character '-'"
+    "not a valid Jade identifier"
   )
 }

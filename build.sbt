@@ -23,7 +23,7 @@ lazy val `monster-sbt-plugins` = project
   .settings(publish / skip := true)
   .aggregate(`sbt-plugins-core`, `sbt-plugins-jade`)
 
-/** TODO */
+/** 'Core' plugins for use across all Monster sbt projects. */
 lazy val `sbt-plugins-core` = project
   .in(file("plugins/core"))
   .enablePlugins(MonsterLibraryPlugin)
@@ -36,7 +36,7 @@ lazy val `sbt-plugins-core` = project
     addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.6.0")
   )
 
-/** TODO */
+/** Plugins for Monster sbt projects that generate data for Jade datasets. */
 lazy val `sbt-plugins-jade` = project
   .in(file("plugins/jade"))
   .enablePlugins(MonsterLibraryPlugin)

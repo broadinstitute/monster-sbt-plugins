@@ -5,9 +5,9 @@ import enumeratum.{CirceEnum, Enum, EnumEntry}
 
 import scala.collection.immutable.IndexedSeq
 
-/** TODO */
+/** Column type for tabular data in a Jade dataset. */
 sealed trait JadeDatatype extends EnumEntry with Snakecase {
-  /** TODO */
+  /** Fully-qualified name of the Scala class corresponding to the Jade type. */
   def asScala: String
 }
 
