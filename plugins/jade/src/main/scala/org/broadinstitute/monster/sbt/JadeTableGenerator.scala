@@ -6,6 +6,9 @@ import io.circe.jawn.JawnParser
 object JadeTableGenerator {
   private val parser = new JawnParser()
 
+  /** Scala keywords which must be escaped if used as a column / table name. */
+  private val keywords = Set("type")
+
   /**
     * Generate a Scala case class corresponding to a Jade table.
     *
@@ -32,9 +35,12 @@ object JadeTableGenerator {
 
   /** Get the Scala field declaration for a Jade column. */
   private def fieldForColumn(jadeColumn: JadeColumn): String = {
-    val columnName = snakeToCamel(jadeColumn.name, titleCase = false)
+    val rawColumnName = snakeToCamel(jadeColumn.name, titleCase = false)
+    val columnName =
+      if (keywords.contains(rawColumnName)) s"`$rawColumnName`" else rawColumnName
+
     val columnType = jadeColumn.datatype.asScala
-    val modifiedType = jadeColumn.modifier.modify(columnType)
+    val modifiedType = jadeColumn.`type`.modify(columnType)
 
     s"$columnName: $modifiedType"
   }

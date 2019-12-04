@@ -118,6 +118,24 @@ class JadeTableGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues
        """ should compile
   }
   it should behave like checkGeneration(
+    "generate required columns",
+    s"""{
+       |  "name": "required_column",
+       |  "columns": [
+       |    {
+       |      "name": "test_required",
+       |      "datatype": "string",
+       |      "type": "required"
+       |    }
+       |  ]
+       |}""".stripMargin,
+    s"""package $testPackage
+       |
+       |case class RequiredColumn(
+       |testRequired: _root_.java.lang.String)
+       |""".stripMargin
+  )
+  it should behave like checkGeneration(
     "generate primary key columns",
     s"""{
        |  "name": "key_column",
@@ -125,7 +143,7 @@ class JadeTableGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues
        |    {
        |      "name": "test_key",
        |      "datatype": "string",
-       |      "modifier": "primary_key"
+       |      "type": "required"
        |    }
        |  ]
        |}""".stripMargin,
@@ -143,7 +161,7 @@ class JadeTableGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues
        |    {
        |      "name": "test_array",
        |      "datatype": "float",
-       |      "modifier": "array"
+       |      "type": "repeated"
        |    }
        |  ]
        |}""".stripMargin,
@@ -154,14 +172,14 @@ class JadeTableGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues
        |""".stripMargin
   )
   it should behave like checkGeneration(
-    "mix all kinds of column modifiers",
+    "mix all kinds of column types",
     s"""{
        |  "name": "all_modifiers",
        |  "columns": [
        |    {
        |      "name": "key_column",
        |      "datatype": "date",
-       |      "modifier": "primary_key"
+       |      "type": "primary_key"
        |    },
        |    {
        |      "name": "normal_column",
@@ -170,7 +188,12 @@ class JadeTableGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues
        |    {
        |      "name": "array_column",
        |      "datatype": "integer",
-       |      "modifier": "array"
+       |      "type": "repeated"
+       |    },
+       |    {
+       |      "name": "required_column",
+       |      "datatype": "float",
+       |      "type": "required"
        |    }
        |  ]
        |}""".stripMargin,
@@ -179,7 +202,8 @@ class JadeTableGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues
        |case class AllModifiers(
        |keyColumn: _root_.java.time.LocalDate,
        |normalColumn: _root_.scala.Option[_root_.scala.Boolean],
-       |arrayColumn: _root_.scala.Array[_root_.scala.Long])
+       |arrayColumn: _root_.scala.Array[_root_.scala.Long],
+       |requiredColumn: _root_.scala.Double)
        |""".stripMargin
   )
   // NOTE: This is copy-pasted from the expected output of the test above.
@@ -190,6 +214,29 @@ class JadeTableGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues
        keyColumn: _root_.java.time.LocalDate,
        normalColumn: _root_.scala.Option[_root_.scala.Boolean],
        arrayColumn: _root_.scala.Array[_root_.scala.Long])
+       """ should compile
+  }
+
+  it should behave like checkGeneration(
+    "escape columns named `type` in generated code",
+    s"""{
+       |  "name": "type_column",
+       |  "columns": [
+       |    {
+       |      "name": "type",
+       |      "datatype": "float"
+       |    }
+       |  ]
+       |}""".stripMargin,
+    s"""package $testPackage
+       |
+       |case class TypeColumn(
+       |`type`: _root_.scala.Option[_root_.scala.Double])
+       |""".stripMargin
+  )
+  it should "output compile-able code with escaped fields" in {
+    """case class TypeColumn(
+       `type`: _root_.scala.Option[_root_.scala.Double])
        """ should compile
   }
 

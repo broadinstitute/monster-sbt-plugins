@@ -32,8 +32,9 @@ object MonsterJadeDatasetPlugin extends AutoPlugin {
 
   override def projectSettings: Seq[Def.Setting[_]] = Seq(
     jadeSchemaSource := sourceDirectory.value / "jade-schema",
+    jadeSchemaExtension := "schema.json",
     jadeSchemaTarget := (Compile / sourceManaged).value / "jade-schema",
-    managedSourceDirectories += jadeSchemaTarget.value,
+    Compile / managedSourceDirectories += jadeSchemaTarget.value,
     generateJadeTables / fileInputs += jadeSchemaSource.value.toGlob / s"*.${jadeSchemaExtension.value}",
     generateJadeTables := {
       /*

@@ -8,13 +8,13 @@ import io.circe.derivation.{deriveDecoder, renaming}
   *
   * @param name name of the column. Will propogate to the underlying BigQuery schema.
   * @param datatype type of data stored by the column
-  * @param modifier type modifier for data stored by the column
+  * @param `type` type of the column
   * @param links links from the column to other table/column pairs in the dataset
   */
 case class JadeColumn(
   name: JadeIdentifier,
   datatype: JadeDatatype,
-  modifier: JadeColumnModifier = JadeColumnModifier.Normal,
+  `type`: JadeColumnType = JadeColumnType.Optional,
   links: Vector[JadeLink] = Vector.empty
 )
 
