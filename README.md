@@ -38,14 +38,17 @@ resolvers += Resolver.url(
   new URL("https://broadinstitute.jfrog.io/broadinstitute/libs-release/")
 )(publishPatterns)
 
-addSbtPlugin("org.broadinstitute.monster" % "monster-sbt-plugins" % "<version>")
+addSbtPlugin("org.broadinstitute.monster" % "sbt-plugins-jade" % "<version>")
+# If your project isn't generating data for a Jade dataset, you can just do:
+#addSbtPlugin("org.broadinstitute.monster" % "sbt-plugins-core" % "<version>")
 ```
 
 Eventually we intend to publish a higher-level template repository containing this boilerplate.
 
 ## Available plugins
-| Plugin Name | Description |
-| ----------- | ----------- |
-| `MonsterBasePlugin` | Core settings for compilation, formatting, versioning, and test coverage. |
-| `MonsterLibraryPlugin` | Settings for publishing to Broad's Artifactory instance. |
-| `MonsterDockerPlugin` | Settings for publishing to DSP's public GCR repository. |
+| Plugin Name | Artifact | Description |
+| ----------- | ----------- | ----------- | 
+| `MonsterBasePlugin` | `sbt-plugins-core` | Core settings for compilation, formatting, versioning, and test coverage. |
+| `MonsterLibraryPlugin` | `sbt-plugins-core` | Settings for publishing to Broad's Artifactory instance. |
+| `MonsterDockerPlugin` | `sbt-plugins-core` | Settings for publishing to DSP's public GCR repository. |
+| `MonsterJadeDatasetPlugin` | `sbt-plugins-jade` | Settings for working with Jade datasets. |
