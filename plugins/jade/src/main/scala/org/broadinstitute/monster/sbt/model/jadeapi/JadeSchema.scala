@@ -4,8 +4,8 @@ import io.circe.{Encoder, Json}
 import io.circe.derivation.deriveEncoder
 
 case class JadeSchema(
-  tables: Seq[JadeTable],
-  relationships: Seq[JadeRelationship]
+  tables: Set[JadeTable],
+  relationships: Set[JadeRelationship]
 )
 
 object JadeSchema {

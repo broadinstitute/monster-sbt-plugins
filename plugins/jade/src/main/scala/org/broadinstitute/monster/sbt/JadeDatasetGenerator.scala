@@ -28,8 +28,8 @@ object JadeDatasetGenerator {
         defaultProfileId = profileId,
         description = description,
         schema = JadeSchema(
-          tables = tables.map(convertTable),
-          relationships = rels
+          tables = tables.map(convertTable).toSet,
+          relationships = rels.toSet
         )
       )
     }
@@ -59,16 +59,13 @@ object JadeDatasetGenerator {
                     .get(link.tableName)
                     .exists(_.contains(link.columnName)),
                   JadeRelationship(
-                    name = UUID.randomUUID(),
                     from = JadeRelationshipRef(
                       table = table.name,
-                      column = sourceName,
-                      cardinality = "one" // Pointless
+                      column = sourceName
                     ),
                     to = JadeRelationshipRef(
                       table = link.tableName,
-                      column = link.columnName,
-                      cardinality = "one" // Equally pointless
+                      column = link.columnName
                     )
                   ) :: relationshipsSoFar,
                   s"No such table/column pair: ${link.tableName}/${link.columnName}"
@@ -91,9 +88,9 @@ object JadeDatasetGenerator {
           datatype = baseCol.datatype,
           arrayOf = baseCol.`type` == ColumnType.Repeated
         )
-      },
+      }.toSet,
       primaryKey = base.columns.collect {
         case col if col.`type` == ColumnType.PrimaryKey => col.name
-      }
+      }.toSet
     )
 }

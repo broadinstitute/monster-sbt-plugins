@@ -8,7 +8,15 @@ import io.circe.{Decoder, Encoder}
   * We restrict how this wrapper can be constructed to enforce
   * that the ID string only contains allowed characters.
   */
-class JadeIdentifier private (val id: String) extends AnyVal
+class JadeIdentifier private[sbt] (private[sbt] val id: String) {
+  override def toString: String = id.toString
+
+  override def equals(obj: Any): Boolean = obj match {
+    case other: JadeIdentifier => id.equals(other.id)
+    case _                     => false
+  }
+  override def hashCode(): Int = id.hashCode
+}
 
 object JadeIdentifier {
   /** Pattern matching valid Jade IDs. */

@@ -6,8 +6,8 @@ import org.broadinstitute.monster.sbt.model.JadeIdentifier
 
 case class JadeTable(
   name: JadeIdentifier,
-  columns: Seq[JadeColumn],
-  primaryKey: Seq[JadeIdentifier]
+  columns: Set[JadeColumn],
+  primaryKey: Set[JadeIdentifier]
 )
 
 object JadeTable {
