@@ -11,6 +11,7 @@ import sbt.Keys._
 import sbt.complete.Parser
 import sbt.complete.DefaultParsers._
 import sbt.nio.Keys._
+import sbt.nio.file.FileTreeView
 
 /** Plugin for projects which ETL data into a Jade dataset. */
 object MonsterJadeDatasetPlugin extends AutoPlugin {
@@ -87,17 +88,21 @@ object MonsterJadeDatasetPlugin extends AutoPlugin {
     },
     Compile / sourceGenerators += generateJadeTables.taskValue,
     generateJadeDataset := {
+      val log = streams.value.log
+
       val profileId = (token(Space) ~> token(uuidParser, "<profile-id>")).parsed
       val name = jadeDatasetName.value
       val description = jadeDatasetDescription.value
-      val sourceTables = (jadeSchemaSource.value / s"*${jadeSchemaExtension.value}")
-        .get()
-        .map { file =>
-          jsonParser
-            .decodeFile[MonsterTable](file)
-            .fold(err => sys.error(err.getMessage), identity)
-        }
 
+      val sourcePattern = jadeSchemaSource.value.toGlob / s"*.${jadeSchemaExtension.value}"
+      val sourceTables = FileTreeView.default.list(sourcePattern).map {
+        case (path, _) =>
+          jsonParser
+            .decodeFile[MonsterTable](path.toFile)
+            .fold(err => sys.error(err.getMessage), identity)
+      }
+
+      log.info(s"Generating Jade schema from ${sourceTables.length} input tables...")
       JadeDatasetGenerator
         .generateDataset(name, description, profileId, sourceTables)
         .fold(
@@ -105,6 +110,7 @@ object MonsterJadeDatasetPlugin extends AutoPlugin {
           datasetModel => {
             val out = target.value / s"$name.dataset.json"
             IO.write(out, datasetModel.asJson.noSpaces)
+            log.info(s"Wrote Jade schema to ${out.getAbsolutePath}")
             out
           }
         )

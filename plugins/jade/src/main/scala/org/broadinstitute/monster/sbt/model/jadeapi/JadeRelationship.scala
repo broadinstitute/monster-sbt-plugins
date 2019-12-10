@@ -1,10 +1,9 @@
 package org.broadinstitute.monster.sbt.model.jadeapi
 
-import java.security.MessageDigest
+import java.util.UUID
 
 import io.circe.{Encoder, Json}
 import io.circe.derivation.deriveEncoder
-import io.circe.syntax._
 
 case class JadeRelationship(
   from: JadeRelationshipRef,
@@ -12,15 +11,10 @@ case class JadeRelationship(
 )
 
 object JadeRelationship {
-  /*
-   * Jade requires that relationships have names, so we generate
-   * a relationship's name by hashing its JSONified contents.
-   */
-  private val digest = MessageDigest.getInstance("SHA-256")
-
+  // Jade requires that relationships have names, so we generate
+  // fake ones. THIS IS NOT DETERMINISTIC.
   implicit val encoder: Encoder[JadeRelationship] =
     deriveEncoder.mapJsonObject { base =>
-      val nameBytes = digest.digest(base.asJson.noSpaces.getBytes)
-      base.add("name", Json.fromString(new String(nameBytes)))
+      base.add("name", Json.fromString(UUID.randomUUID().toString))
     }
 }
