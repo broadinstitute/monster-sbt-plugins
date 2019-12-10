@@ -1,9 +1,10 @@
 package org.broadinstitute.monster.sbt
 
 import io.circe.jawn.JawnParser
+import org.broadinstitute.monster.sbt.model.{MonsterColumn, JadeIdentifier, MonsterTable}
 
-/** Utilities for generating Scala classes from Jade table schemas. */
-object JadeTableGenerator {
+/** Utilities for generating Scala classes from Monster table definitions. */
+object TableClassGenerator {
   private val parser = new JawnParser()
 
   /** Scala keywords which must be escaped if used as a column / table name. */
@@ -19,7 +20,7 @@ object JadeTableGenerator {
     tablePackage: String,
     tableContent: String
   ): Either[Throwable, String] =
-    parser.decode[JadeTable](tableContent).map { baseTable =>
+    parser.decode[MonsterTable](tableContent).map { baseTable =>
       val name = className(baseTable)
       val columnFields = baseTable.columns.map(fieldForColumn)
 
@@ -30,11 +31,11 @@ object JadeTableGenerator {
     }
 
   /** Get the Scala class name for a Jade table. */
-  private def className(table: JadeTable): String =
+  private def className(table: MonsterTable): String =
     snakeToCamel(table.name, titleCase = true)
 
   /** Get the Scala field declaration for a Jade column. */
-  private def fieldForColumn(jadeColumn: JadeColumn): String = {
+  private def fieldForColumn(jadeColumn: MonsterColumn): String = {
     val rawColumnName = snakeToCamel(jadeColumn.name, titleCase = false)
     val columnName =
       if (keywords.contains(rawColumnName)) s"`$rawColumnName`" else rawColumnName

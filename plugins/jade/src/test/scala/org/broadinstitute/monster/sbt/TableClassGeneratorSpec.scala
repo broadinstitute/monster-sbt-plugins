@@ -4,20 +4,20 @@ import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class JadeTableGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
-  behavior of "JadeTableGenerator"
+class TableClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
+  behavior of "TableClassGenerator"
 
   private val testPackage = "foo.bar"
 
   def checkGeneration(description: String, input: String, output: String): Unit =
     it should description in {
-      val out = JadeTableGenerator.generateTableClass(testPackage, input)
+      val out = TableClassGenerator.generateTableClass(testPackage, input)
       out.right.value shouldBe output
     }
 
   def checkFailedGeneration(description: String, input: String, error: String): Unit =
     it should description in {
-      val out = JadeTableGenerator.generateTableClass(testPackage, input)
+      val out = TableClassGenerator.generateTableClass(testPackage, input)
       out.left.value.getMessage should include(error)
     }
 

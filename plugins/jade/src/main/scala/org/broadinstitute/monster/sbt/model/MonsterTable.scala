@@ -1,4 +1,4 @@
-package org.broadinstitute.monster.sbt
+package org.broadinstitute.monster.sbt.model
 
 import io.circe.Decoder
 import io.circe.derivation.{deriveDecoder, renaming}
@@ -9,13 +9,13 @@ import io.circe.derivation.{deriveDecoder, renaming}
   * @param name name of the table. Will propogate to the underlying BigQuery dataset
   * @param columns columns contained by the table
   */
-case class JadeTable(
+case class MonsterTable(
   name: JadeIdentifier,
-  columns: Vector[JadeColumn]
+  columns: Vector[MonsterColumn]
 )
 
-object JadeTable {
+object MonsterTable {
 
-  implicit val decoder: Decoder[JadeTable] =
+  implicit val decoder: Decoder[MonsterTable] =
     deriveDecoder(renaming.snakeCase, true, None)
 }
