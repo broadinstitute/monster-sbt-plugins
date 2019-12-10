@@ -11,6 +11,7 @@ case class JadeRelationship(
 )
 
 object JadeRelationship {
+
   // Jade requires that relationships have names, so we generate
   // fake ones. THIS IS NOT DETERMINISTIC.
   implicit val encoder: Encoder[JadeRelationship] =
