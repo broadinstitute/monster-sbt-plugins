@@ -1,34 +1,27 @@
 package org.broadinstitute.monster.sbt
 
 import java.nio.file.{Files, Path}
+import java.util.UUID
 
+import io.circe.syntax._
+import io.circe.jawn.JawnParser
+import org.broadinstitute.monster.sbt.model.MonsterTable
 import sbt._
 import sbt.Keys._
+import sbt.complete.Parser
+import sbt.complete.DefaultParsers._
 import sbt.nio.Keys._
+import sbt.nio.file.FileTreeView
 
 /** Plugin for projects which ETL data into a Jade dataset. */
 object MonsterJadeDatasetPlugin extends AutoPlugin {
   override def requires: Plugins = MonsterBasePlugin
 
-  object autoImport {
-
-    val jadeSchemaSource: SettingKey[File] =
-      settingKey("Directory containing table definitions for a Jade dataset")
-
-    val jadeSchemaExtension: SettingKey[String] =
-      settingKey("Extension for files containing Jade table definitions")
-
-    val jadeTablePackage: SettingKey[String] =
-      settingKey("Package which should be used for generated table classes")
-
-    val jadeSchemaTarget: SettingKey[File] =
-      settingKey("Directory where generated table classes should be written")
-
-    val generateJadeTables: TaskKey[Seq[File]] =
-      taskKey("Generate case classes for table definitions in the project")
-  }
-
+  object autoImport extends MonsterJadeDatasetKeys
   import autoImport._
+
+  val uuidParser: Parser[UUID] = mapOrFail(NotSpace)(UUID.fromString)
+  val jsonParser: JawnParser = new JawnParser()
 
   override def projectSettings: Seq[Def.Setting[_]] = Seq(
     jadeSchemaSource := sourceDirectory.value / "jade-schema",
@@ -55,7 +48,7 @@ object MonsterJadeDatasetPlugin extends AutoPlugin {
         val input = new String(Files.readAllBytes(path))
         val output = outputPath(path)
         logger.info(s"Generating $output from $path")
-        JadeTableGenerator.generateTableClass(jadeTablePackage.value, input) match {
+        TableClassGenerator.generateTableClass(jadeTablePackage.value, input) match {
           case Left(err) =>
             logger.trace(err)
             sys.error(s"Failed to generate $output from $path")
@@ -93,6 +86,34 @@ object MonsterJadeDatasetPlugin extends AutoPlugin {
       toGenerate.foreach(generate)
       sourceMap.keys.toVector.map(_.toFile)
     },
-    Compile / sourceGenerators += generateJadeTables.taskValue
+    Compile / sourceGenerators += generateJadeTables.taskValue,
+    generateJadeDataset := {
+      val log = streams.value.log
+
+      val profileId = (token(Space) ~> token(uuidParser, "<profile-id>")).parsed
+      val name = jadeDatasetName.value
+      val description = jadeDatasetDescription.value
+
+      val sourcePattern = jadeSchemaSource.value.toGlob / s"*.${jadeSchemaExtension.value}"
+      val sourceTables = FileTreeView.default.list(sourcePattern).map {
+        case (path, _) =>
+          jsonParser
+            .decodeFile[MonsterTable](path.toFile)
+            .fold(err => sys.error(err.getMessage), identity)
+      }
+
+      log.info(s"Generating Jade schema from ${sourceTables.length} input tables...")
+      JadeDatasetGenerator
+        .generateDataset(name, description, profileId, sourceTables)
+        .fold(
+          sys.error,
+          datasetModel => {
+            val out = target.value / s"$name.dataset.json"
+            IO.write(out, datasetModel.asJson.noSpaces)
+            log.info(s"Wrote Jade schema to ${out.getAbsolutePath}")
+            out
+          }
+        )
+    }
   )
 }

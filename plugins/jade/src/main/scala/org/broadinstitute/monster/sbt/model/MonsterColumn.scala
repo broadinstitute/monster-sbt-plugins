@@ -1,4 +1,4 @@
-package org.broadinstitute.monster.sbt
+package org.broadinstitute.monster.sbt.model
 
 import io.circe.Decoder
 import io.circe.derivation.{deriveDecoder, renaming}
@@ -11,15 +11,15 @@ import io.circe.derivation.{deriveDecoder, renaming}
   * @param `type` type of the column
   * @param links links from the column to other table/column pairs in the dataset
   */
-case class JadeColumn(
+case class MonsterColumn(
   name: JadeIdentifier,
-  datatype: JadeDatatype,
-  `type`: JadeColumnType = JadeColumnType.Optional,
-  links: Vector[JadeLink] = Vector.empty
+  datatype: Datatype,
+  `type`: ColumnType = ColumnType.Optional,
+  links: Vector[Link] = Vector.empty
 )
 
-object JadeColumn {
+object MonsterColumn {
 
-  implicit val decoder: Decoder[JadeColumn] =
+  implicit val decoder: Decoder[MonsterColumn] =
     deriveDecoder(renaming.snakeCase, true, None)
 }
