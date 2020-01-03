@@ -14,14 +14,20 @@ class JadeDatasetGeneratorSpec extends AnyFlatSpec with Matchers with EitherValu
   private val participants = MonsterTable(
     name = new JadeIdentifier("participant"),
     columns = Vector(
-      MonsterColumn(
+      SimpleColumn(
         name = new JadeIdentifier("id"),
         datatype = Datatype.String,
         `type` = ColumnType.PrimaryKey
       ),
-      MonsterColumn(
+      SimpleColumn(
         name = new JadeIdentifier("age"),
         datatype = Datatype.Integer
+      )
+    ),
+    structColumns = Vector(
+      StructColumn(
+        name = new JadeIdentifier("attributes"),
+        structName = new JadeIdentifier("donor_attributes")
       )
     )
   )
@@ -29,12 +35,12 @@ class JadeDatasetGeneratorSpec extends AnyFlatSpec with Matchers with EitherValu
   private val samples = MonsterTable(
     name = new JadeIdentifier("sample"),
     columns = Vector(
-      MonsterColumn(
+      SimpleColumn(
         name = new JadeIdentifier("id"),
         datatype = Datatype.String,
         `type` = ColumnType.PrimaryKey
       ),
-      MonsterColumn(
+      SimpleColumn(
         name = new JadeIdentifier("participant_id"),
         datatype = Datatype.String,
         links = Vector(
@@ -44,7 +50,7 @@ class JadeDatasetGeneratorSpec extends AnyFlatSpec with Matchers with EitherValu
           )
         )
       ),
-      MonsterColumn(
+      SimpleColumn(
         name = new JadeIdentifier("sample_times"),
         datatype = Datatype.Timestamp,
         `type` = ColumnType.Repeated
@@ -55,7 +61,7 @@ class JadeDatasetGeneratorSpec extends AnyFlatSpec with Matchers with EitherValu
   private val files = MonsterTable(
     name = new JadeIdentifier("file"),
     columns = Vector(
-      MonsterColumn(
+      SimpleColumn(
         name = new JadeIdentifier("sample_id"),
         datatype = Datatype.String,
         `type` = ColumnType.PrimaryKey,
@@ -66,15 +72,27 @@ class JadeDatasetGeneratorSpec extends AnyFlatSpec with Matchers with EitherValu
           )
         )
       ),
-      MonsterColumn(
+      SimpleColumn(
         name = new JadeIdentifier("file_type"),
         datatype = Datatype.String,
         `type` = ColumnType.PrimaryKey
       ),
-      MonsterColumn(
+      SimpleColumn(
         name = new JadeIdentifier("data_type"),
         datatype = Datatype.String,
         `type` = ColumnType.Required
+      )
+    ),
+    structColumns = Vector(
+      StructColumn(
+        name = new JadeIdentifier("metrics"),
+        structName = new JadeIdentifier("file_metrics"),
+        `type` = ColumnType.Required
+      ),
+      StructColumn(
+        name = new JadeIdentifier("comments"),
+        structName = new JadeIdentifier("comments"),
+        `type` = ColumnType.Repeated
       )
     )
   )
@@ -98,6 +116,11 @@ class JadeDatasetGeneratorSpec extends AnyFlatSpec with Matchers with EitherValu
               JadeColumn(
                 name = new JadeIdentifier("age"),
                 datatype = Datatype.Integer,
+                arrayOf = false
+              ),
+              JadeColumn(
+                name = new JadeIdentifier("attributes"),
+                datatype = Datatype.String,
                 arrayOf = false
               )
             ),
@@ -141,6 +164,16 @@ class JadeDatasetGeneratorSpec extends AnyFlatSpec with Matchers with EitherValu
                 name = new JadeIdentifier("data_type"),
                 datatype = Datatype.String,
                 arrayOf = false
+              ),
+              JadeColumn(
+                name = new JadeIdentifier("metrics"),
+                datatype = Datatype.String,
+                arrayOf = false
+              ),
+              JadeColumn(
+                name = new JadeIdentifier("comments"),
+                datatype = Datatype.String,
+                arrayOf = true
               )
             ),
             primaryKey =
