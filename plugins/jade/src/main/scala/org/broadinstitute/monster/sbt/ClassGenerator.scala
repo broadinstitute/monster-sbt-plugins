@@ -38,6 +38,14 @@ object ClassGenerator {
       s"""package $tablePackage
          |
          |case class $name($classParams)
+         |
+         |object $name {
+         |  implicit val encoder: _root_.io.circe.Encoder[$name] =
+         |    _root_.io.circe.derivation.deriveEncoder(
+         |      _root_.io.circe.derivation.renaming.snakeCase,
+         |      _root_.scala.None
+         |    )
+         |}
          |""".stripMargin
     }
 
@@ -59,6 +67,16 @@ object ClassGenerator {
       s"""package $structPackage
          |
          |case class $name($classParams)
+         |
+         |object $name {
+         |  implicit val encoder: _root_.io.circe.Encoder[$name] =
+         |    _root_.io.circe.derivation.deriveEncoder(
+         |      _root_.io.circe.derivation.renaming.snakeCase,
+         |      _root_.scala.None
+         |    ).mapJson { obj =>
+         |      _root_.io.circe.Json.fromString(obj.noSpaces)
+         |    }
+         |}
          |""".stripMargin
     }
 

@@ -50,6 +50,14 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
     s"""package $testPackage
        |
        |case class NoColumns()
+       |
+       |object NoColumns {
+       |  implicit val encoder: _root_.io.circe.Encoder[NoColumns] =
+       |    _root_.io.circe.derivation.deriveEncoder(
+       |      _root_.io.circe.derivation.renaming.snakeCase,
+       |      _root_.scala.None
+       |    )
+       |}
        |""".stripMargin
   )
   it should behave like checkTableGeneration(
@@ -67,6 +75,14 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |
        |case class OneColumn(
        |testColumn: _root_.scala.Option[_root_.java.lang.String])
+       |
+       |object OneColumn {
+       |  implicit val encoder: _root_.io.circe.Encoder[OneColumn] =
+       |    _root_.io.circe.derivation.deriveEncoder(
+       |      _root_.io.circe.derivation.renaming.snakeCase,
+       |      _root_.scala.None
+       |    )
+       |}
        |""".stripMargin
   )
   it should behave like checkTableGeneration(
@@ -119,6 +135,14 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |timestampColumn: _root_.scala.Option[_root_.java.time.OffsetDateTime],
        |dirColumn: _root_.scala.Option[_root_.java.lang.String],
        |fileColumn: _root_.scala.Option[_root_.java.lang.String])
+       |
+       |object AllColumns {
+       |  implicit val encoder: _root_.io.circe.Encoder[AllColumns] =
+       |    _root_.io.circe.derivation.deriveEncoder(
+       |      _root_.io.circe.derivation.renaming.snakeCase,
+       |      _root_.scala.None
+       |    )
+       |}
        |""".stripMargin
   )
   // NOTE: This is copy-pasted from the expected output of the test above.
@@ -134,8 +158,17 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        timestampColumn: _root_.scala.Option[_root_.java.time.OffsetDateTime],
        dirColumn: _root_.scala.Option[_root_.java.lang.String],
        fileColumn: _root_.scala.Option[_root_.java.lang.String])
+
+       object AllColumns {
+         implicit val encoder: _root_.io.circe.Encoder[AllColumns] =
+           _root_.io.circe.derivation.deriveEncoder(
+             _root_.io.circe.derivation.renaming.snakeCase,
+             _root_.scala.None
+           )
+       }
        """ should compile
   }
+
   it should behave like checkTableGeneration(
     "generate required columns",
     s"""{
@@ -152,6 +185,14 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |
        |case class RequiredColumn(
        |testRequired: _root_.java.lang.String)
+       |
+       |object RequiredColumn {
+       |  implicit val encoder: _root_.io.circe.Encoder[RequiredColumn] =
+       |    _root_.io.circe.derivation.deriveEncoder(
+       |      _root_.io.circe.derivation.renaming.snakeCase,
+       |      _root_.scala.None
+       |    )
+       |}
        |""".stripMargin
   )
   it should behave like checkTableGeneration(
@@ -170,6 +211,14 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |
        |case class KeyColumn(
        |testKey: _root_.java.lang.String)
+       |
+       |object KeyColumn {
+       |  implicit val encoder: _root_.io.circe.Encoder[KeyColumn] =
+       |    _root_.io.circe.derivation.deriveEncoder(
+       |      _root_.io.circe.derivation.renaming.snakeCase,
+       |      _root_.scala.None
+       |    )
+       |}
        |""".stripMargin
   )
   it should behave like checkTableGeneration(
@@ -188,6 +237,14 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |
        |case class ArrayColumn(
        |testArray: _root_.scala.Array[_root_.scala.Double])
+       |
+       |object ArrayColumn {
+       |  implicit val encoder: _root_.io.circe.Encoder[ArrayColumn] =
+       |    _root_.io.circe.derivation.deriveEncoder(
+       |      _root_.io.circe.derivation.renaming.snakeCase,
+       |      _root_.scala.None
+       |    )
+       |}
        |""".stripMargin
   )
   it should behave like checkTableGeneration(
@@ -223,6 +280,14 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |normalColumn: _root_.scala.Option[_root_.scala.Boolean],
        |arrayColumn: _root_.scala.Array[_root_.scala.Long],
        |requiredColumn: _root_.scala.Double)
+       |
+       |object AllModifiers {
+       |  implicit val encoder: _root_.io.circe.Encoder[AllModifiers] =
+       |    _root_.io.circe.derivation.deriveEncoder(
+       |      _root_.io.circe.derivation.renaming.snakeCase,
+       |      _root_.scala.None
+       |    )
+       |}
        |""".stripMargin
   )
   // NOTE: This is copy-pasted from the expected output of the test above.
@@ -251,6 +316,14 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |
        |case class TypeColumn(
        |`type`: _root_.scala.Option[_root_.scala.Double])
+       |
+       |object TypeColumn {
+       |  implicit val encoder: _root_.io.circe.Encoder[TypeColumn] =
+       |    _root_.io.circe.derivation.deriveEncoder(
+       |      _root_.io.circe.derivation.renaming.snakeCase,
+       |      _root_.scala.None
+       |    )
+       |}
        |""".stripMargin
   )
   it should "output compile-able code with escaped fields" in {
@@ -274,6 +347,14 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |
        |case class StructColumn(
        |comment: _root_.scala.Option[_root_.$structPackage.RowComment])
+       |
+       |object StructColumn {
+       |  implicit val encoder: _root_.io.circe.Encoder[StructColumn] =
+       |    _root_.io.circe.derivation.deriveEncoder(
+       |      _root_.io.circe.derivation.renaming.snakeCase,
+       |      _root_.scala.None
+       |    )
+       |}
        |""".stripMargin
   )
 
@@ -293,6 +374,14 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |
        |case class RequiredStruct(
        |requiredComment: _root_.$structPackage.Comment)
+       |
+       |object RequiredStruct {
+       |  implicit val encoder: _root_.io.circe.Encoder[RequiredStruct] =
+       |    _root_.io.circe.derivation.deriveEncoder(
+       |      _root_.io.circe.derivation.renaming.snakeCase,
+       |      _root_.scala.None
+       |    )
+       |}
        |""".stripMargin
   )
 
@@ -312,6 +401,14 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |
        |case class RepeatedStruct(
        |repeatedComment: _root_.scala.Array[_root_.$structPackage.Comment123])
+       |
+       |object RepeatedStruct {
+       |  implicit val encoder: _root_.io.circe.Encoder[RepeatedStruct] =
+       |    _root_.io.circe.derivation.deriveEncoder(
+       |      _root_.io.circe.derivation.renaming.snakeCase,
+       |      _root_.scala.None
+       |    )
+       |}
        |""".stripMargin
   )
 
@@ -342,6 +439,16 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
     s"""package $structPackage
        |
        |case class NoFields()
+       |
+       |object NoFields {
+       |  implicit val encoder: _root_.io.circe.Encoder[NoFields] =
+       |    _root_.io.circe.derivation.deriveEncoder(
+       |      _root_.io.circe.derivation.renaming.snakeCase,
+       |      _root_.scala.None
+       |    ).mapJson { obj =>
+       |      _root_.io.circe.Json.fromString(obj.noSpaces)
+       |    }
+       |}
        |""".stripMargin
   )
   it should behave like checkStructGeneration(
@@ -359,6 +466,16 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |
        |case class OneField(
        |testField: _root_.scala.Option[_root_.java.lang.String])
+       |
+       |object OneField {
+       |  implicit val encoder: _root_.io.circe.Encoder[OneField] =
+       |    _root_.io.circe.derivation.deriveEncoder(
+       |      _root_.io.circe.derivation.renaming.snakeCase,
+       |      _root_.scala.None
+       |    ).mapJson { obj =>
+       |      _root_.io.circe.Json.fromString(obj.noSpaces)
+       |    }
+       |}
        |""".stripMargin
   )
   it should behave like checkStructGeneration(
@@ -411,6 +528,16 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |timestampField: _root_.scala.Option[_root_.java.time.OffsetDateTime],
        |dirField: _root_.scala.Option[_root_.java.lang.String],
        |fileField: _root_.scala.Option[_root_.java.lang.String])
+       |
+       |object AllFields {
+       |  implicit val encoder: _root_.io.circe.Encoder[AllFields] =
+       |    _root_.io.circe.derivation.deriveEncoder(
+       |      _root_.io.circe.derivation.renaming.snakeCase,
+       |      _root_.scala.None
+       |    ).mapJson { obj =>
+       |      _root_.io.circe.Json.fromString(obj.noSpaces)
+       |    }
+       |}
        |""".stripMargin
   )
   it should "output compile-able struct code with all types" in {
@@ -423,6 +550,16 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        timestampField: _root_.scala.Option[_root_.java.time.OffsetDateTime],
        dirField: _root_.scala.Option[_root_.java.lang.String],
        fileField: _root_.scala.Option[_root_.java.lang.String])
+
+       object AllFields {
+         implicit val encoder: _root_.io.circe.Encoder[AllFields] =
+           _root_.io.circe.derivation.deriveEncoder(
+             _root_.io.circe.derivation.renaming.snakeCase,
+             _root_.scala.None
+           ).mapJson { obj =>
+             _root_.io.circe.Json.fromString(obj.noSpaces)
+           }
+       }
        """ should compile
   }
   it should behave like checkStructGeneration(
@@ -441,6 +578,16 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |
        |case class RequiredField(
        |testRequired: _root_.java.lang.String)
+       |
+       |object RequiredField {
+       |  implicit val encoder: _root_.io.circe.Encoder[RequiredField] =
+       |    _root_.io.circe.derivation.deriveEncoder(
+       |      _root_.io.circe.derivation.renaming.snakeCase,
+       |      _root_.scala.None
+       |    ).mapJson { obj =>
+       |      _root_.io.circe.Json.fromString(obj.noSpaces)
+       |    }
+       |}
        |""".stripMargin
   )
   it should behave like checkStructGeneration(
@@ -459,6 +606,16 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |
        |case class ArrayField(
        |testArray: _root_.scala.Array[_root_.scala.Double])
+       |
+       |object ArrayField {
+       |  implicit val encoder: _root_.io.circe.Encoder[ArrayField] =
+       |    _root_.io.circe.derivation.deriveEncoder(
+       |      _root_.io.circe.derivation.renaming.snakeCase,
+       |      _root_.scala.None
+       |    ).mapJson { obj =>
+       |      _root_.io.circe.Json.fromString(obj.noSpaces)
+       |    }
+       |}
        |""".stripMargin
   )
   it should behave like checkStructGeneration(
@@ -494,6 +651,16 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |normalField: _root_.scala.Option[_root_.scala.Boolean],
        |arrayField: _root_.scala.Array[_root_.scala.Long],
        |requiredField: _root_.scala.Double)
+       |
+       |object AllModifiers {
+       |  implicit val encoder: _root_.io.circe.Encoder[AllModifiers] =
+       |    _root_.io.circe.derivation.deriveEncoder(
+       |      _root_.io.circe.derivation.renaming.snakeCase,
+       |      _root_.scala.None
+       |    ).mapJson { obj =>
+       |      _root_.io.circe.Json.fromString(obj.noSpaces)
+       |    }
+       |}
        |""".stripMargin
   )
   it should "output compile-able struct code with all modifiers" in {
@@ -501,6 +668,16 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        keyField: _root_.java.time.LocalDate,
        normalField: _root_.scala.Option[_root_.scala.Boolean],
        arrayField: _root_.scala.Array[_root_.scala.Long])
+
+       object AllModifiers {
+         implicit val encoder: _root_.io.circe.Encoder[AllModifiers] =
+           _root_.io.circe.derivation.deriveEncoder(
+             _root_.io.circe.derivation.renaming.snakeCase,
+             _root_.scala.None
+           ).mapJson { obj =>
+             _root_.io.circe.Json.fromString(obj.noSpaces)
+           }
+       }
        """ should compile
   }
 
@@ -519,6 +696,16 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |
        |case class TypeField(
        |`type`: _root_.scala.Option[_root_.scala.Double])
+       |
+       |object TypeField {
+       |  implicit val encoder: _root_.io.circe.Encoder[TypeField] =
+       |    _root_.io.circe.derivation.deriveEncoder(
+       |      _root_.io.circe.derivation.renaming.snakeCase,
+       |      _root_.scala.None
+       |    ).mapJson { obj =>
+       |      _root_.io.circe.Json.fromString(obj.noSpaces)
+       |    }
+       |}
        |""".stripMargin
   )
   it should "output compile-able struct code with escaped fields" in {

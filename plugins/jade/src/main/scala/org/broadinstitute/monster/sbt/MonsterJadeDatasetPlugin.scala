@@ -21,8 +21,13 @@ object MonsterJadeDatasetPlugin extends AutoPlugin {
   object autoImport extends MonsterJadeDatasetKeys
   import autoImport._
 
-  val uuidParser: Parser[UUID] = mapOrFail(NotSpace)(UUID.fromString)
-  val jsonParser: JawnParser = new JawnParser()
+  private val uuidParser: Parser[UUID] = mapOrFail(NotSpace)(UUID.fromString)
+  private val jsonParser: JawnParser = new JawnParser()
+
+  // We inject circe as a dependency so we can include serialization
+  // logic within generated source code.
+  val CirceVersion = "0.12.3"
+  val CirceDerivationVersion = "0.12.0-M7"
 
   /**
     * Convert the contents of a local (non-Scala) file into Scala source code.
@@ -52,7 +57,6 @@ object MonsterJadeDatasetPlugin extends AutoPlugin {
     logger: ManagedLogger,
     gen: String => Either[Throwable, String]
   ): Seq[File] = {
-
     def outputPath(path: Path): Path =
       outputDir / path.getFileName.toString.replaceAll(s".$inputExtension$$", ".scala")
 
@@ -97,6 +101,10 @@ object MonsterJadeDatasetPlugin extends AutoPlugin {
   }
 
   override def projectSettings: Seq[Def.Setting[_]] = Seq(
+    libraryDependencies ++= Seq(
+      "io.circe" %% "circe-core" % CirceVersion,
+      "io.circe" %% "circe-derivation" % CirceDerivationVersion
+    ),
     jadeTableSource := sourceDirectory.value / "jade-schema" / "tables",
     jadeTableExtension := "table.json",
     jadeTableTarget := (Compile / sourceManaged).value / "jade-schema" / "tables",
