@@ -4,7 +4,7 @@ import java.util.UUID
 
 import org.broadinstitute.monster.sbt.model.{
   ColumnType,
-  Datatype,
+  DataType,
   JadeIdentifier,
   MonsterTable
 }
@@ -95,7 +95,7 @@ object JadeDatasetGenerator {
     val structColumns = base.structColumns.map { structCol =>
       JadeColumn(
         name = structCol.name,
-        datatype = Datatype.String,
+        datatype = DataType.String,
         arrayOf = structCol.`type` == ColumnType.Repeated
       )
     }

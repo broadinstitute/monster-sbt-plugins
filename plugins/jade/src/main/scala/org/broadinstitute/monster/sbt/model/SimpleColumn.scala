@@ -13,7 +13,7 @@ import io.circe.derivation.{deriveDecoder, renaming}
   */
 case class SimpleColumn(
   name: JadeIdentifier,
-  datatype: Datatype,
+  datatype: DataType,
   `type`: ColumnType = ColumnType.Optional,
   links: Vector[Link] = Vector.empty
 )

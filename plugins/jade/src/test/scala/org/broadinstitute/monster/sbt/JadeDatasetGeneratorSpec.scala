@@ -16,12 +16,12 @@ class JadeDatasetGeneratorSpec extends AnyFlatSpec with Matchers with EitherValu
     columns = Vector(
       SimpleColumn(
         name = new JadeIdentifier("id"),
-        datatype = Datatype.String,
+        datatype = DataType.String,
         `type` = ColumnType.PrimaryKey
       ),
       SimpleColumn(
         name = new JadeIdentifier("age"),
-        datatype = Datatype.Integer
+        datatype = DataType.Integer
       )
     ),
     structColumns = Vector(
@@ -37,12 +37,12 @@ class JadeDatasetGeneratorSpec extends AnyFlatSpec with Matchers with EitherValu
     columns = Vector(
       SimpleColumn(
         name = new JadeIdentifier("id"),
-        datatype = Datatype.String,
+        datatype = DataType.String,
         `type` = ColumnType.PrimaryKey
       ),
       SimpleColumn(
         name = new JadeIdentifier("participant_id"),
-        datatype = Datatype.String,
+        datatype = DataType.String,
         links = Vector(
           Link(
             tableName = participants.name,
@@ -52,7 +52,7 @@ class JadeDatasetGeneratorSpec extends AnyFlatSpec with Matchers with EitherValu
       ),
       SimpleColumn(
         name = new JadeIdentifier("sample_times"),
-        datatype = Datatype.Timestamp,
+        datatype = DataType.Timestamp,
         `type` = ColumnType.Repeated
       )
     )
@@ -63,7 +63,7 @@ class JadeDatasetGeneratorSpec extends AnyFlatSpec with Matchers with EitherValu
     columns = Vector(
       SimpleColumn(
         name = new JadeIdentifier("sample_id"),
-        datatype = Datatype.String,
+        datatype = DataType.String,
         `type` = ColumnType.PrimaryKey,
         links = Vector(
           Link(
@@ -74,12 +74,12 @@ class JadeDatasetGeneratorSpec extends AnyFlatSpec with Matchers with EitherValu
       ),
       SimpleColumn(
         name = new JadeIdentifier("file_type"),
-        datatype = Datatype.String,
+        datatype = DataType.String,
         `type` = ColumnType.PrimaryKey
       ),
       SimpleColumn(
         name = new JadeIdentifier("data_type"),
-        datatype = Datatype.String,
+        datatype = DataType.String,
         `type` = ColumnType.Required
       )
     ),
@@ -110,17 +110,17 @@ class JadeDatasetGeneratorSpec extends AnyFlatSpec with Matchers with EitherValu
             columns = Set(
               JadeColumn(
                 name = new JadeIdentifier("id"),
-                datatype = Datatype.String,
+                datatype = DataType.String,
                 arrayOf = false
               ),
               JadeColumn(
                 name = new JadeIdentifier("age"),
-                datatype = Datatype.Integer,
+                datatype = DataType.Integer,
                 arrayOf = false
               ),
               JadeColumn(
                 name = new JadeIdentifier("attributes"),
-                datatype = Datatype.String,
+                datatype = DataType.String,
                 arrayOf = false
               )
             ),
@@ -131,17 +131,17 @@ class JadeDatasetGeneratorSpec extends AnyFlatSpec with Matchers with EitherValu
             columns = Set(
               JadeColumn(
                 name = new JadeIdentifier("id"),
-                datatype = Datatype.String,
+                datatype = DataType.String,
                 arrayOf = false
               ),
               JadeColumn(
                 name = new JadeIdentifier("participant_id"),
-                datatype = Datatype.String,
+                datatype = DataType.String,
                 arrayOf = false
               ),
               JadeColumn(
                 name = new JadeIdentifier("sample_times"),
-                datatype = Datatype.Timestamp,
+                datatype = DataType.Timestamp,
                 arrayOf = true
               )
             ),
@@ -152,27 +152,27 @@ class JadeDatasetGeneratorSpec extends AnyFlatSpec with Matchers with EitherValu
             columns = Set(
               JadeColumn(
                 name = new JadeIdentifier("sample_id"),
-                datatype = Datatype.String,
+                datatype = DataType.String,
                 arrayOf = false
               ),
               JadeColumn(
                 name = new JadeIdentifier("file_type"),
-                datatype = Datatype.String,
+                datatype = DataType.String,
                 arrayOf = false
               ),
               JadeColumn(
                 name = new JadeIdentifier("data_type"),
-                datatype = Datatype.String,
+                datatype = DataType.String,
                 arrayOf = false
               ),
               JadeColumn(
                 name = new JadeIdentifier("metrics"),
-                datatype = Datatype.String,
+                datatype = DataType.String,
                 arrayOf = false
               ),
               JadeColumn(
                 name = new JadeIdentifier("comments"),
-                datatype = Datatype.String,
+                datatype = DataType.String,
                 arrayOf = true
               )
             ),
