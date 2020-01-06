@@ -69,6 +69,7 @@ object MonsterJadeDatasetPlugin extends AutoPlugin {
           logger.trace(err)
           sys.error(s"Failed to generate $output from $path")
         case Right(codeString) =>
+          Files.createDirectories(output.getParent)
           Files.write(output, codeString.getBytes())
       }
       output
