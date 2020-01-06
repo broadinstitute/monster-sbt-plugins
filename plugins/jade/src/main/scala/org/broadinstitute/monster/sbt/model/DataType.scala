@@ -6,13 +6,13 @@ import enumeratum.{CirceEnum, Enum, EnumEntry}
 import scala.collection.immutable.IndexedSeq
 
 /** Column type for tabular data in a Jade dataset. */
-sealed trait Datatype extends EnumEntry with Snakecase {
+sealed trait DataType extends EnumEntry with Snakecase {
   /** Fully-qualified name of the Scala class corresponding to the Jade type. */
   def asScala: String
 }
 
-object Datatype extends Enum[Datatype] with CirceEnum[Datatype] {
-  override val values: IndexedSeq[Datatype] = findValues
+object DataType extends Enum[DataType] with CirceEnum[DataType] {
+  override val values: IndexedSeq[DataType] = findValues
 
   // "Simple" column types.
   // Jade supports raw Bytes too, but it's not clear what Scala
@@ -20,19 +20,19 @@ object Datatype extends Enum[Datatype] with CirceEnum[Datatype] {
   // needed to use it yet.
   // They also support Numeric types, which are similar to Java
   // BigDecimals, but again we haven't needed it yet.
-  case object Boolean extends Datatype {
+  case object Boolean extends DataType {
     override val asScala: String = "_root_.scala.Boolean"
   }
 
-  case object Float extends Datatype {
+  case object Float extends DataType {
     override val asScala: String = "_root_.scala.Double"
   }
 
-  case object Integer extends Datatype {
+  case object Integer extends DataType {
     override val asScala: String = "_root_.scala.Long"
   }
 
-  case object String extends Datatype {
+  case object String extends DataType {
     override val asScala: String = "_root_.java.lang.String"
   }
 
@@ -40,20 +40,20 @@ object Datatype extends Enum[Datatype] with CirceEnum[Datatype] {
   // Jade also supports datetime / time types, but we haven't had
   // a need for them yet because it's usually better to use one of
   // these two options.
-  case object Date extends Datatype {
+  case object Date extends DataType {
     override val asScala: String = "_root_.java.time.LocalDate"
   }
 
-  case object Timestamp extends Datatype {
+  case object Timestamp extends DataType {
     override val asScala: String = "_root_.java.time.OffsetDateTime"
   }
 
   // Jade-specific column types.
-  case object DirRef extends Datatype {
+  case object DirRef extends DataType {
     override val asScala: String = "_root_.java.lang.String"
   }
 
-  case object FileRef extends Datatype {
+  case object FileRef extends DataType {
     override val asScala: String = "_root_.java.lang.String"
   }
 }

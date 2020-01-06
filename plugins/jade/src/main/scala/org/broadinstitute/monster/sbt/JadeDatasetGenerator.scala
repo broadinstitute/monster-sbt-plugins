@@ -2,7 +2,12 @@ package org.broadinstitute.monster.sbt
 
 import java.util.UUID
 
-import org.broadinstitute.monster.sbt.model.{ColumnType, JadeIdentifier, MonsterTable}
+import org.broadinstitute.monster.sbt.model.{
+  ColumnType,
+  DataType,
+  JadeIdentifier,
+  MonsterTable
+}
 import org.broadinstitute.monster.sbt.model.jadeapi._
 
 /** Utilities for generating Jade dataset definitions from Monster table definitions. */
@@ -79,18 +84,27 @@ object JadeDatasetGenerator {
   }
 
   /** Convert a Monster table to a Jade-compatible table. */
-  private def convertTable(base: MonsterTable): JadeTable =
+  private def convertTable(base: MonsterTable): JadeTable = {
+    val simpleColumns = base.columns.map { baseCol =>
+      JadeColumn(
+        name = baseCol.name,
+        datatype = baseCol.datatype,
+        arrayOf = baseCol.`type` == ColumnType.Repeated
+      )
+    }
+    val structColumns = base.structColumns.map { structCol =>
+      JadeColumn(
+        name = structCol.name,
+        datatype = DataType.String,
+        arrayOf = structCol.`type` == ColumnType.Repeated
+      )
+    }
     JadeTable(
       name = base.name,
-      columns = base.columns.map { baseCol =>
-        JadeColumn(
-          name = baseCol.name,
-          datatype = baseCol.datatype,
-          arrayOf = baseCol.`type` == ColumnType.Repeated
-        )
-      }.toSet,
+      columns = (simpleColumns ++ structColumns).toSet,
       primaryKey = base.columns.collect {
         case col if col.`type` == ColumnType.PrimaryKey => col.name
       }.toSet
     )
+  }
 }

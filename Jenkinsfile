@@ -25,6 +25,11 @@ pipeline {
                 sh 'sbt Compile/compile'
             }
         }
+        stage('Test') {
+            steps {
+                sh 'sbt test'
+            }
+        }
         stage('Publish') {
             when {
                 anyOf {
@@ -49,6 +54,9 @@ pipeline {
         }
     }
     post {
+        always {
+            junit '**/target/test-reports/*'
+        }
         cleanup {
             cleanWs()
         }
