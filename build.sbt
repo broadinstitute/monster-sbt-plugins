@@ -21,7 +21,7 @@ val commonSettings = Seq(
 lazy val `monster-sbt-plugins` = project
   .in(file("."))
   .settings(publish / skip := true)
-  .aggregate(`sbt-plugins-core`, `sbt-plugins-jade`)
+  .aggregate(`sbt-plugins-core`, `sbt-plugins-jade`, `sbt-plugins-scio`)
 
 /** 'Core' plugins for use across all Monster sbt projects. */
 lazy val `sbt-plugins-core` = project
@@ -51,4 +51,14 @@ lazy val `sbt-plugins-jade` = project
       "io.circe" %% "circe-derivation" % circeDerivationVersion,
       "org.scalatest" %% "scalatest" % scalaTestVersion % Test
     )
+  )
+
+/** Plugins for Monster sbt projects that contain Scio processing pipelines. */
+lazy val `sbt-plugins-scio` = project
+  .in(file("plugins/scio"))
+  .enablePlugins(MonsterLibraryPlugin)
+  .dependsOn(`sbt-plugins-core`)
+  .settings(
+    commonSettings,
+    addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.14.10")
   )
