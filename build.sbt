@@ -1,9 +1,3 @@
-val circeVersion = "0.12.3"
-val circeDerivationVersion = "0.12.0-M7"
-val enumeratumVersion = "1.5.13"
-val enumeratumCirceVersion = "1.5.22"
-val scalaTestVersion = "3.1.0"
-
 val commonSettings = Seq(
   sbtPlugin := true,
   // Maven-style publishing is unforgivingly broken for sbt plugins.
@@ -21,7 +15,7 @@ val commonSettings = Seq(
 lazy val `monster-sbt-plugins` = project
   .in(file("."))
   .settings(publish / skip := true)
-  .aggregate(`sbt-plugins-core`, `sbt-plugins-jade`)
+  .aggregate(`sbt-plugins-core`, `sbt-plugins-jade`, `sbt-plugins-scio`)
 
 /** 'Core' plugins for use across all Monster sbt projects. */
 lazy val `sbt-plugins-core` = project
@@ -44,11 +38,22 @@ lazy val `sbt-plugins-jade` = project
   .settings(
     commonSettings,
     libraryDependencies ++= Seq(
-      "com.beachape" %% "enumeratum" % enumeratumVersion,
-      "com.beachape" %% "enumeratum-circe" % enumeratumCirceVersion,
-      "io.circe" %% "circe-core" % circeVersion,
-      "io.circe" %% "circe-parser" % circeVersion,
-      "io.circe" %% "circe-derivation" % circeDerivationVersion,
-      "org.scalatest" %% "scalatest" % scalaTestVersion % Test
+      "com.beachape" %% "enumeratum" % "1.5.13",
+      "com.beachape" %% "enumeratum-circe" % "1.5.22",
+      "io.circe" %% "circe-core" % "0.12.3",
+      "io.circe" %% "circe-parser" % "0.12.3",
+      "io.circe" %% "circe-derivation" % "0.12.0-M7",
+      "org.scalatest" %% "scalatest" % "3.1.0" % Test
     )
+  )
+
+/** Plugins for Monster sbt projects that contain Scio processing pipelines. */
+lazy val `sbt-plugins-scio` = project
+  .in(file("plugins/scio"))
+  .enablePlugins(MonsterLibraryPlugin)
+  .dependsOn(`sbt-plugins-core`)
+  .settings(
+    commonSettings,
+    addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.14.10"),
+    libraryDependencies += "com.google.cloud" % "google-cloud-storage" % "1.103.1"
   )
