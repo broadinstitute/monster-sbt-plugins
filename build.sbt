@@ -52,8 +52,4 @@ lazy val `sbt-plugins-scio` = project
   .in(file("plugins/scio"))
   .enablePlugins(MonsterLibraryPlugin)
   .dependsOn(`sbt-plugins-core`)
-  .settings(
-    commonSettings,
-    addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.14.10"),
-    libraryDependencies += "com.google.cloud" % "google-cloud-storage" % "1.103.1"
-  )
+  .settings(commonSettings)
