@@ -7,7 +7,7 @@ import sbt.Keys._
 object MonsterScioPipelinePlugin extends AutoPlugin {
   override def requires: Plugins = MonsterDockerPlugin
 
-  val ScioUtilsVersion = "1.0.0"
+  val ScioUtilsVersion = "1.1.1"
 
   override def projectSettings: Seq[Def.Setting[_]] = Seq(
     // Set best-practice compiler flags for Scio.
@@ -16,8 +16,9 @@ object MonsterScioPipelinePlugin extends AutoPlugin {
       "-language:higherKinds"
     ),
     // Add our common utils library.
-    // TODO: Are there any common test libraries that we could/should
-    // also add here?
-    libraryDependencies += "org.broadinstitute.monster" %% "scio-utils" % ScioUtilsVersion
+    libraryDependencies ++= Seq(
+      "org.broadinstitute.monster" %% "scio-utils" % ScioUtilsVersion,
+      "org.broadinstitute.monster" %% "scio-test-utils" % ScioUtilsVersion % s"${Test.name},${IntegrationTest.name}"
+    )
   )
 }
