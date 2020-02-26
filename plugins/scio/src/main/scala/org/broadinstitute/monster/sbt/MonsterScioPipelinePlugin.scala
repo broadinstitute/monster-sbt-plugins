@@ -18,7 +18,7 @@ object MonsterScioPipelinePlugin extends AutoPlugin {
     // Add our common utils library.
     libraryDependencies ++= Seq(
       "org.broadinstitute.monster" %% "scio-utils" % ScioUtilsVersion,
-      "org.broadinstitute.monster" %% "scio-test-utils" % ScioUtilsVersion % Test
+      "org.broadinstitute.monster" %% "scio-test-utils" % ScioUtilsVersion % s"${Test.name},${IntegrationTest.name}"
     )
   )
 }
