@@ -28,6 +28,8 @@ object MonsterDockerPlugin extends AutoPlugin with LinuxKeys with NativePackager
     // volumes are chmod-ed to be writeable only by "root").
     Docker / daemonUserUid := None,
     Docker / daemonUser := "root",
+    // Publish "latest" tag to make coordinating versions in dev simpler.
+    dockerUpdateLatest := true,
     // Make our CI life easier and set up publish delegation here.
     publish := (Docker / publish).value,
     publishLocal := (Docker / publishLocal).value
