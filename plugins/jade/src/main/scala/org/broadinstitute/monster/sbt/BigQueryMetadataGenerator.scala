@@ -48,6 +48,8 @@ object BigQueryMetadataGenerator {
       val pkCols = primaryKeyColumns(table)
       val compareCols = nonPrimaryKeyColumns(table)
 
+      // Clean the directory before generating anything.
+      IO.delete(outputDir)
       val out = outputDir / table.name.id
       val schemaOut = out / "schema.json"
       val pkOut = out / "primary-keys"
@@ -64,14 +66,23 @@ object BigQueryMetadataGenerator {
   }
 
   /** Get a BigQuery schema describing the columns of one of our tables. */
-  def tableSchema(table: MonsterTable): BigQueryTable =
-    table.columns.map { column =>
+  def tableSchema(table: MonsterTable): BigQueryTable = {
+    val simpleColumns = table.columns.map { column =>
       BigQueryColumn(
         name = column.name.id,
         `type` = column.datatype.asBigQuery,
         mode = column.`type`.asBigQuery
       )
     }
+    val structColumns = table.structColumns.map { column =>
+      BigQueryColumn(
+        name = column.name.id,
+        `type` = "STRING",
+        mode = column.`type`.asBigQuery
+      )
+    }
+    simpleColumns ++ structColumns
+  }
 
   /** Get the names of all primary-key columns in one of our tables. */
   def primaryKeyColumns(table: MonsterTable): Seq[String] =
