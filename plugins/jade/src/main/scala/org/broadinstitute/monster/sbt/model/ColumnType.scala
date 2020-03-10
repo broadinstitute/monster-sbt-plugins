@@ -12,6 +12,9 @@ sealed trait ColumnType extends EnumEntry with Snakecase {
     * a modified (fully-qualified) Scala class based on the type.
     */
   def modify(scalaType: String): String
+
+  /** Name of the BigQuery mode that the column type will map to. */
+  def asBigQuery: String
 }
 
 object ColumnType extends Enum[ColumnType] with CirceEnum[ColumnType] {
@@ -24,11 +27,13 @@ object ColumnType extends Enum[ColumnType] with CirceEnum[ColumnType] {
     */
   case object PrimaryKey extends ColumnType {
     override def modify(scalaType: String): String = scalaType
+    override val asBigQuery: String = "REQUIRED"
   }
 
   /** Marker for non-optional columns. */
   case object Required extends ColumnType {
     override def modify(scalaType: String): String = scalaType
+    override val asBigQuery: String = "REQUIRED"
   }
 
   /** Marker for optional columns. */
@@ -36,6 +41,7 @@ object ColumnType extends Enum[ColumnType] with CirceEnum[ColumnType] {
 
     override def modify(scalaType: String): String =
       s"_root_.scala.Option[$scalaType]"
+    override val asBigQuery: String = "NULLABLE"
   }
 
   /** Marker for columns which contain arrays. */
@@ -43,5 +49,6 @@ object ColumnType extends Enum[ColumnType] with CirceEnum[ColumnType] {
 
     override def modify(scalaType: String): String =
       s"_root_.scala.Array[$scalaType]"
+    override val asBigQuery: String = "REPEATED"
   }
 }
