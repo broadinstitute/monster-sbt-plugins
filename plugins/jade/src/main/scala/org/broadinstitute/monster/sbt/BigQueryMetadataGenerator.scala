@@ -57,7 +57,7 @@ object BigQueryMetadataGenerator {
       IO.write(schemaOut, schema.asJson.noSpaces)
       IO.write(pkOut, pkCols.mkString(","))
       IO.write(compareOut, compareCols.mkString(","))
-      logger.info(s"Wrote BigQuery metadata to ${out.getAbsolutePath}")
+      logger.info(s"Wrote BigQuery metadata to ${out.getAbsolutePath}/")
 
       Seq(schemaOut, pkOut, compareOut)
     }

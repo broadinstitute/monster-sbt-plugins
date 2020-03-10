@@ -17,18 +17,18 @@ object JadeDatasetGenerator {
   private val jsonParser: JawnParser = new JawnParser()
 
   /**
-   * Generate a JSON file containing a Jade dataset definition based on
-   * the table definitions located in a local directory.
-   *
-   * @param name unique ID for the dataset
-   * @param description human-friendly description for the dataset
-   * @param profileId ID of the resource/billing profile the dataset should use
-   * @param inputDir directory containing table definitions in our JSON format
-   * @param inputExtension file extension used for our table definitions
-   * @param outputDir directory where the Jade dataset request should be written
-   * @param fileView utility which can inspect the local filesystem
-   * @param logger utility which can write logs to the sbt console
-   */
+    * Generate a JSON file containing a Jade dataset definition based on
+    * the table definitions located in a local directory.
+    *
+    * @param name unique ID for the dataset
+    * @param description human-friendly description for the dataset
+    * @param profileId ID of the resource/billing profile the dataset should use
+    * @param inputDir directory containing table definitions in our JSON format
+    * @param inputExtension file extension used for our table definitions
+    * @param outputDir directory where the Jade dataset request should be written
+    * @param fileView utility which can inspect the local filesystem
+    * @param logger utility which can write logs to the sbt console
+    */
   def generateDataset(
     name: JadeIdentifier,
     description: String,
