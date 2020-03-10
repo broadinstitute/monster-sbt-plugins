@@ -79,6 +79,7 @@ object MonsterJadeDatasetPlugin extends AutoPlugin with LinuxKeys {
     ),
     // Override the Docker image to use gcloud, so we get access to 'bq'.
     dockerBaseImage := "google/cloud-sdk:283.0.0-slim",
+    dockerEntrypoint := Seq("bq"),
     // Write local files into the /schemas directory.
     Docker / defaultLinuxInstallLocation := "/bq-metadata",
     // Rewire the Docker mappings to only add generated metadata files.
