@@ -42,20 +42,21 @@ object BigQueryMetadataGenerator {
           .fold(err => sys.error(err.getMessage), identity)
     }
 
+    // Clean the directory before generating anything.
+    IO.delete(outputDir)
+
+    // Generate new files.
     sourceTables.flatMap { table =>
       logger.info(s"Generating BigQuery metadata for table ${table.name}")
       val schema = tableSchema(table)
       val pkCols = primaryKeyColumns(table)
       val compareCols = nonPrimaryKeyColumns(table)
 
-      // Clean the directory before generating anything.
-      IO.delete(outputDir)
       val out = outputDir / table.name.id
       val schemaOut = out / "schema.json"
       val pkOut = out / "primary-keys"
       val compareOut = out / "compare-cols"
 
-      out.mkdirs()
       IO.write(schemaOut, schema.asJson.noSpaces)
       IO.write(pkOut, pkCols.mkString(","))
       IO.write(compareOut, compareCols.mkString(","))
