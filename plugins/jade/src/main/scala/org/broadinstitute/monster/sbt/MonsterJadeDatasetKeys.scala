@@ -45,4 +45,10 @@ trait MonsterJadeDatasetKeys {
   val generateJadeDataset: InputKey[File] = inputKey(
     "Generate JSON definition of a Jade dataset containing table definitions in this project"
   )
+
+  val bigQueryMetadataTarget: SettingKey[File] =
+    settingKey("Directory where generated BigQuery metadata should be written")
+
+  val generateBigQueryMetadata: TaskKey[Seq[File]] =
+    taskKey("Generate BigQuery metadata files for table definitions in this project")
 }
