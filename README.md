@@ -1,5 +1,5 @@
-# monster-sbt-plugins
-Build plugins used by the Monster team in DSP
+# Monster Plugins
+Build plugins used by the Monster team in DSP.
 
 ## Motivation
 Over time, the Scala community has accumulated a set of best-practice settings
@@ -47,8 +47,11 @@ Eventually we intend to publish a higher-level template repository containing th
 
 ## Available plugins
 | Plugin Name | Artifact | Description |
-| ----------- | ----------- | ----------- | 
+| ----------- | ----------- | ----------- |
 | `MonsterBasePlugin` | `sbt-plugins-core` | Core settings for compilation, formatting, versioning, and test coverage. |
 | `MonsterLibraryPlugin` | `sbt-plugins-core` | Settings for publishing to Broad's Artifactory instance. |
 | `MonsterDockerPlugin` | `sbt-plugins-core` | Settings for publishing to DSP's public GCR repository. |
-| `MonsterJadeDatasetPlugin` | `sbt-plugins-jade` | Settings for working with Jade datasets. |
+| `MonsterJadeDatasetPlugin` | `sbt-plugins-jade` | Settings for working with Jade datasets and publishing schema images to GCR. |
+| `MonsterScioPipelinePlugin` | `sbt-plugins-scio` | Settings for developing Scio projects and publishing runner images to GCR. |
+
+See the individual plugin directories for more documentation about each artifact.
