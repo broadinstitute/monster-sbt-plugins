@@ -81,6 +81,10 @@ class JadeDatasetGeneratorSpec extends AnyFlatSpec with Matchers with EitherValu
         name = new JadeIdentifier("data_type"),
         datatype = DataType.String,
         `type` = ColumnType.Required
+      ),
+      SimpleColumn(
+        name = new JadeIdentifier("path"),
+        datatype = DataType.FileRef
       )
     ),
     structColumns = Vector(
@@ -99,6 +103,7 @@ class JadeDatasetGeneratorSpec extends AnyFlatSpec with Matchers with EitherValu
 
   it should "build a Jade dataset from a collection of Monster tables" in {
     val sourceTables = List(participants, samples, files)
+
     val expected = JadeDataset(
       name = new JadeIdentifier("test_dataset"),
       description = "Test test test",
@@ -174,6 +179,11 @@ class JadeDatasetGeneratorSpec extends AnyFlatSpec with Matchers with EitherValu
                 name = new JadeIdentifier("comments"),
                 datatype = DataType.String,
                 arrayOf = true
+              ),
+              JadeColumn(
+                name = new JadeIdentifier("path"),
+                datatype = DataType.FileRef,
+                arrayOf = false
               )
             ),
             primaryKey =

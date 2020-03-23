@@ -116,11 +116,11 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |    },
        |    {
        |      "name": "dir_column",
-       |      "datatype": "dir_ref"
+       |      "datatype": "dirref"
        |    },
        |    {
        |      "name": "file_column",
-       |      "datatype": "file_ref"
+       |      "datatype": "fileref"
        |    }
        |  ]
        |}""".stripMargin,
@@ -509,11 +509,11 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |    },
        |    {
        |      "name": "dir_field",
-       |      "datatype": "dir_ref"
+       |      "datatype": "dirref"
        |    },
        |    {
        |      "name": "file_field",
-       |      "datatype": "file_ref"
+       |      "datatype": "fileref"
        |    }
        |  ]
        |}""".stripMargin,

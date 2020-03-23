@@ -1,12 +1,12 @@
 package org.broadinstitute.monster.sbt.model
 
-import enumeratum.EnumEntry.Snakecase
+import enumeratum.EnumEntry.Lowercase
 import enumeratum.{CirceEnum, Enum, EnumEntry}
 
 import scala.collection.immutable.IndexedSeq
 
 /** Column type for tabular data in a Jade dataset. */
-sealed trait DataType extends EnumEntry with Snakecase {
+sealed trait DataType extends EnumEntry with Lowercase {
   /** Fully-qualified name of the Scala class corresponding to the Jade type. */
   def asScala: String
 
