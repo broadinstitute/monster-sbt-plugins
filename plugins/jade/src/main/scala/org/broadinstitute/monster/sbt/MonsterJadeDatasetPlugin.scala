@@ -55,8 +55,7 @@ object MonsterJadeDatasetPlugin extends AutoPlugin with LinuxKeys {
       outputDir = jadeTableTarget.value.toPath,
       fileView = fileTreeView.value,
       logger = streams.value.log,
-      gen = ClassGenerator
-        .generateTableClass(jadeTablePackage.value, jadeStructPackage.value, _)
+      gen = ClassGenerator.generateTableClass(jadeTablePackage.value, jadeStructPackage.value, _)
     ),
     generateJadeStructs := ClassGenerator.generateClasses(
       inputFiles = generateJadeStructs.inputFiles,

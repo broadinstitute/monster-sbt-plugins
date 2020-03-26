@@ -5,9 +5,7 @@ import enumeratum.{CirceEnum, Enum, EnumEntry}
 
 sealed trait JadePartitionMode extends EnumEntry with Lowercase
 
-object JadePartitionMode
-    extends Enum[JadePartitionMode]
-    with CirceEnum[JadePartitionMode] {
+object JadePartitionMode extends Enum[JadePartitionMode] with CirceEnum[JadePartitionMode] {
   override val values = findValues
 
   case object Date extends JadePartitionMode

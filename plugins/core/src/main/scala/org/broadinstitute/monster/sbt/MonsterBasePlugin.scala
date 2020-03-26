@@ -26,30 +26,48 @@ object MonsterBasePlugin extends AutoPlugin {
   override def requires: Plugins =
     JvmPlugin && DynVerPlugin && ScalafmtPlugin && ScoverageSbtPlugin && BuildInfoPlugin
 
-  val ScalafmtVersion = "2.2.2"
+  val ScalafmtVersion = "2.4.2"
 
   val ScalafmtConf: String =
-    s"""version = "$ScalafmtVersion"
-       |maxColumn = 90
-       |runner.optimizer.forceConfigStyleOnOffset = 90
+    s"""version = $ScalafmtVersion
        |
+       |# Line-width settings.
+       |maxColumn = 100
+       |runner.optimizer.forceConfigStyleOnOffset = 100
+       |
+       |# Vertical alignment settings.
        |align = most
        |align.openParenCallSite = false
        |align.openParenDefnSite = false
+       |assumeStandardLibraryStripMargin = true
        |binPack.literalArgumentLists = false
+       |
+       |# Indentation settings.
        |continuationIndent.callSite = 2
        |continuationIndent.defnSite = 2
-       |danglingParentheses = true
        |
+       |# Settings about when to enter newlines.
+       |danglingParentheses = true
        |newlines.alwaysBeforeTopLevelStatements = true
        |newlines.sometimesBeforeColonInMethodReturnType = false
+       |# FIXME: The behavior here is known to be reversed from what users expect.
+       |# They've deprecated this setting and introduced a new one for 2.5.0, but
+       |# for now this is what we've got.
+       |optIn.blankLineBeforeDocstring = true
        |
+       |# Settings about splitting method chains across lines.
        |includeCurlyBraceInSelectChains = false
+       |
+       |# Rules for more complicated code rewrites.
+       |rewrite.rules = [
+       |  RedundantBraces
+       |  RedundantParens
+       |]
        |""".stripMargin
 
   override def buildSettings: Seq[Def.Setting[_]] = Seq(
     organization := "org.broadinstitute.monster",
-    scalaVersion := "2.12.10",
+    scalaVersion := "2.12.11",
     scalacOptions ++= {
       val snapshot = isSnapshot.value
       val base = Seq(
@@ -90,7 +108,9 @@ object MonsterBasePlugin extends AutoPlugin {
     },
     scalafmtConfig := {
       val targetFile = (ThisBuild / baseDirectory).value / ".scalafmt.conf"
-      IO.write(targetFile, ScalafmtConf)
+      if (!targetFile.exists() || IO.read(targetFile) != ScalafmtConf) {
+        IO.write(targetFile, ScalafmtConf)
+      }
       targetFile
     },
     scalafmtOnCompile := true,
@@ -112,9 +132,7 @@ object MonsterBasePlugin extends AutoPlugin {
           "Broad Artifactory Releases" at "https://broadinstitute.jfrog.io/broadinstitute/libs-release/",
           "Broad Artifactory Snapshots" at "https://broadinstitute.jfrog.io/broadinstitute/libs-snapshot/"
         ),
-        addCompilerPlugin(
-          "com.olegpy" %% "better-monadic-for" % BetterMonadicForVersion
-        ),
+        addCompilerPlugin("com.olegpy" %% "better-monadic-for" % BetterMonadicForVersion),
         Compile / console / scalacOptions := (Compile / scalacOptions).value
           .filterNot(
             Set(
