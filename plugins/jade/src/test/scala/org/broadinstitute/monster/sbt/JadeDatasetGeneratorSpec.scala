@@ -32,9 +32,9 @@ class JadeDatasetGeneratorSpec extends AnyFlatSpec with Matchers with EitherValu
     ),
     partitioning = PartitionMode.IntRangeFromColumn(
       column = new JadeIdentifier("age"),
-      begin = 0L,
-      end = 120L,
-      interval = 1L
+      min = 0L,
+      max = 120L,
+      size = 1L
     )
   )
 

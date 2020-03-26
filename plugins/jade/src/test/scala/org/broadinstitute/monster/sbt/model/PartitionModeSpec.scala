@@ -23,7 +23,7 @@ class PartitionModeSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   it should "deserialize int_range_from_column modes" in {
     val modeJson =
-      """{ "mode": "int_range_from_column", "column": "bar", "begin": 0, "end": 2, "interval": 1 }"""
+      """{ "mode": "int_range_from_column", "column": "bar", "min": 0, "max": 2, "size": 1 }"""
     parser.decode[PartitionMode](modeJson).right.value shouldBe
       PartitionMode.IntRangeFromColumn(new JadeIdentifier("bar"), 0L, 2L, 1L)
   }
