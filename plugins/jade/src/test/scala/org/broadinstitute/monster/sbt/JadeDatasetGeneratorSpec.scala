@@ -29,6 +29,12 @@ class JadeDatasetGeneratorSpec extends AnyFlatSpec with Matchers with EitherValu
         name = new JadeIdentifier("attributes"),
         structName = new JadeIdentifier("donor_attributes")
       )
+    ),
+    partitioning = PartitionMode.IntRangeFromColumn(
+      column = new JadeIdentifier("age"),
+      min = 0L,
+      max = 120L,
+      size = 1L
     )
   )
 
@@ -85,6 +91,10 @@ class JadeDatasetGeneratorSpec extends AnyFlatSpec with Matchers with EitherValu
       SimpleColumn(
         name = new JadeIdentifier("path"),
         datatype = DataType.FileRef
+      ),
+      SimpleColumn(
+        name = new JadeIdentifier("creation_date"),
+        datatype = DataType.Date
       )
     ),
     structColumns = Vector(
@@ -98,7 +108,8 @@ class JadeDatasetGeneratorSpec extends AnyFlatSpec with Matchers with EitherValu
         structName = new JadeIdentifier("comments"),
         `type` = ColumnType.Repeated
       )
-    )
+    ),
+    partitioning = PartitionMode.DateFromColumn(new JadeIdentifier("creation_date"))
   )
 
   it should "build a Jade dataset from a collection of Monster tables" in {
@@ -129,7 +140,17 @@ class JadeDatasetGeneratorSpec extends AnyFlatSpec with Matchers with EitherValu
                 arrayOf = false
               )
             ),
-            primaryKey = Set(new JadeIdentifier("id"))
+            primaryKey = Set(new JadeIdentifier("id")),
+            partitionMode = JadePartitionMode.Int,
+            datePartitionOptions = None,
+            intPartitionOptions = Some {
+              JadeIntPartitionOptions(
+                column = new JadeIdentifier("age"),
+                min = 0L,
+                max = 120L,
+                interval = 1L
+              )
+            }
           ),
           JadeTable(
             name = samples.name,
@@ -150,7 +171,10 @@ class JadeDatasetGeneratorSpec extends AnyFlatSpec with Matchers with EitherValu
                 arrayOf = true
               )
             ),
-            primaryKey = Set(new JadeIdentifier("id"))
+            primaryKey = Set(new JadeIdentifier("id")),
+            partitionMode = JadePartitionMode.Date,
+            datePartitionOptions = Some(JadeDatePartitionOptions.IngestDate),
+            intPartitionOptions = None
           ),
           JadeTable(
             name = files.name,
@@ -184,10 +208,19 @@ class JadeDatasetGeneratorSpec extends AnyFlatSpec with Matchers with EitherValu
                 name = new JadeIdentifier("path"),
                 datatype = DataType.FileRef,
                 arrayOf = false
+              ),
+              JadeColumn(
+                name = new JadeIdentifier("creation_date"),
+                datatype = DataType.Date,
+                arrayOf = false
               )
             ),
             primaryKey =
-              Set(new JadeIdentifier("sample_id"), new JadeIdentifier("file_type"))
+              Set(new JadeIdentifier("sample_id"), new JadeIdentifier("file_type")),
+            partitionMode = JadePartitionMode.Date,
+            datePartitionOptions =
+              Some(JadeDatePartitionOptions(new JadeIdentifier("creation_date"))),
+            intPartitionOptions = None
           )
         ),
         relationships = Set(

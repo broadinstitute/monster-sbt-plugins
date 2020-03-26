@@ -144,12 +144,28 @@ object JadeDatasetGenerator {
         arrayOf = structCol.`type` == ColumnType.Repeated
       )
     }
+    val (mode, dateOpts, intOpts) = base.partitioning match {
+      case PartitionMode.IngestDate =>
+        (JadePartitionMode.Date, Some(JadeDatePartitionOptions.IngestDate), None)
+      case PartitionMode.DateFromColumn(col) =>
+        (JadePartitionMode.Date, Some(JadeDatePartitionOptions(col)), None)
+      case PartitionMode.IntRangeFromColumn(col, min, max, interval) =>
+        (
+          JadePartitionMode.Int,
+          None,
+          Some(JadeIntPartitionOptions(col, min, max, interval))
+        )
+    }
+
     JadeTable(
       name = base.name,
       columns = (simpleColumns ++ structColumns).toSet,
       primaryKey = base.columns.collect {
         case col if col.`type` == ColumnType.PrimaryKey => col.name
-      }.toSet
+      }.toSet,
+      partitionMode = mode,
+      datePartitionOptions = dateOpts,
+      intPartitionOptions = intOpts
     )
   }
 }

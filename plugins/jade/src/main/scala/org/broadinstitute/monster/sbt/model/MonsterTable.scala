@@ -13,7 +13,8 @@ import io.circe.derivation.{deriveDecoder, renaming}
 case class MonsterTable(
   name: JadeIdentifier,
   columns: Vector[SimpleColumn] = Vector.empty,
-  structColumns: Vector[StructColumn] = Vector.empty
+  structColumns: Vector[StructColumn] = Vector.empty,
+  partitioning: PartitionMode = PartitionMode.IngestDate
 )
 
 object MonsterTable {

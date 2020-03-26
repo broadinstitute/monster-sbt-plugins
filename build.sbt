@@ -38,12 +38,12 @@ lazy val `sbt-plugins-jade` = project
   .settings(
     commonSettings,
     libraryDependencies ++= Seq(
-      "com.beachape" %% "enumeratum" % "1.5.13",
-      "com.beachape" %% "enumeratum-circe" % "1.5.22",
-      "io.circe" %% "circe-core" % "0.12.3",
-      "io.circe" %% "circe-parser" % "0.12.3",
-      "io.circe" %% "circe-derivation" % "0.12.0-M7",
-      "org.scalatest" %% "scalatest" % "3.1.0" % Test
+      "com.beachape" %% "enumeratum" % "1.5.15",
+      "com.beachape" %% "enumeratum-circe" % "1.5.23",
+      "io.circe" %% "circe-core" % "0.13.0",
+      "io.circe" %% "circe-parser" % "0.13.0",
+      "io.circe" %% "circe-derivation" % "0.13.0-M4",
+      "org.scalatest" %% "scalatest" % "3.1.1" % Test
     )
   )
 

@@ -7,7 +7,10 @@ import org.broadinstitute.monster.sbt.model.JadeIdentifier
 case class JadeTable(
   name: JadeIdentifier,
   columns: Set[JadeColumn],
-  primaryKey: Set[JadeIdentifier]
+  primaryKey: Set[JadeIdentifier],
+  partitionMode: JadePartitionMode,
+  datePartitionOptions: Option[JadeDatePartitionOptions],
+  intPartitionOptions: Option[JadeIntPartitionOptions]
 )
 
 object JadeTable {
