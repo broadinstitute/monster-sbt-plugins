@@ -215,8 +215,7 @@ class JadeDatasetGeneratorSpec extends AnyFlatSpec with Matchers with EitherValu
                 arrayOf = false
               )
             ),
-            primaryKey =
-              Set(new JadeIdentifier("sample_id"), new JadeIdentifier("file_type")),
+            primaryKey = Set(new JadeIdentifier("sample_id"), new JadeIdentifier("file_type")),
             partitionMode = JadePartitionMode.Date,
             datePartitionOptions =
               Some(JadeDatePartitionOptions(new JadeIdentifier("creation_date"))),

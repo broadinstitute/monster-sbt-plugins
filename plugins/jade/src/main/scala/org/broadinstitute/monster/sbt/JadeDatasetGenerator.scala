@@ -105,9 +105,7 @@ object JadeDatasetGenerator {
             case (acc, (sourceName, link)) =>
               acc.flatMap { relationshipsSoFar =>
                 Either.cond(
-                  columnsPerTable
-                    .get(link.tableName)
-                    .exists(_.contains(link.columnName)),
+                  columnsPerTable.get(link.tableName).exists(_.contains(link.columnName)),
                   JadeRelationship(
                     from = JadeRelationshipRef(
                       table = table.name,
