@@ -1,0 +1,19 @@
+name: Tag Release
+on:
+  push:
+    tags:
+      - v[0-9]+.[0-9]+.[0-9]+
+      - v[0-9]+.[0-9]+.[0-9]+-**
+jobs:
+  publish-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: olafurpg/setup-scala@v7
+        with:
+          java-version: graalvm@20.0.0
+      - name: Publish
+        env:
+          ARTIFACTORY_USERNAME: ${{ secrets.ArtifactoryUsername }}
+          ARTIFACTORY_PASSWORD: ${{ secrets.ArtifactoryPassword }}
+        run: sbt publish
