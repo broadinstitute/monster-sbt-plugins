@@ -1,7 +1,7 @@
 package org.broadinstitute.monster.sbt
 
 import com.typesafe.sbt.packager.NativePackagerKeys
-import com.typesafe.sbt.packager.archetypes.scripts.AshScriptPlugin
+import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
 import com.typesafe.sbt.packager.docker.DockerPlugin
 import com.typesafe.sbt.packager.linux.LinuxKeys
 import sbt._
@@ -14,7 +14,7 @@ import sbt.Keys._
 object MonsterDockerPlugin extends AutoPlugin with LinuxKeys with NativePackagerKeys {
   import DockerPlugin.autoImport._
 
-  override def requires = DockerPlugin && AshScriptPlugin && MonsterBasePlugin
+  override def requires = DockerPlugin && JavaAppPackaging && MonsterBasePlugin
 
   override def projectSettings: Seq[Def.Setting[_]] = Seq(
     dockerBaseImage := "oracle/graalvm-ce:20.0.0-java8",
