@@ -5,6 +5,7 @@ import io.circe.yaml.syntax._
 import sbt._
 import sbt.Keys._
 import scala.sys.process._
+import scala.util.{Failure, Success, Try}
 
 /**
   * Plugin for projects which wrap a Helm chart.
@@ -76,20 +77,21 @@ object MonsterHelmPlugin extends AutoPlugin {
 
       // Assumes chart-releaser is available on the local PATH,
       // and that CR_TOKEN is in the environment.
-      def cr(cmd: String, args: Map[String, String]): Seq[String] =
-        "cr" :: cmd :: args.toList.flatMap { case (k, v) => List(k, v) }
-
-      val uploadCommand =
-        cr("upload", Map("-o" -> org, "-r" -> repo, "-p" -> packageDir))
-
-      log.info(s"Uploading Helm chart for ${name.value} to $org/$repo...")
-      val uploadResult = Process(uploadCommand).!
-      if (uploadResult != 0) {
-        sys.error(s"`cr upload` failed with exit code $uploadResult")
+      def cr(cmd: String, args: Map[String, String]): Unit = {
+        val fullCommand =
+          "cr" :: cmd :: args.toList.flatMap { case (k, v) => List(k, v) }
+        val result = Process(fullCommand).!
+        if (result != 0) {
+          sys.error(s"`cr $cmd` failed with exit code $result")
+        }
       }
 
+      log.info(s"Uploading Helm chart for ${name.value} to $org/$repo...")
+      cr("upload", Map("-o" -> org, "-r" -> repo, "-p" -> packageDir))
+
       val indexSite = s"https://$org.github.io/$repo"
-      val indexCommand = cr(
+      log.info(s"Adding Helm chart for ${name.value} to index for $indexSite...")
+      cr(
         "index",
         Map(
           "-c" -> indexSite,
@@ -100,10 +102,35 @@ object MonsterHelmPlugin extends AutoPlugin {
         )
       )
 
-      log.info(s"Adding Helm chart for ${name.value} to index for $indexSite...")
-      val indexResult = Process(indexCommand).!
-      if (indexResult != 0) {
-        sys.error(s"`cr index` failed with exit code $indexResult")
+      val gitBase = (ThisBuild / baseDirectory).value
+
+      def git(cmd: String, args: String*): Unit = {
+        val fullCommand = Seq("git", cmd) ++ args
+        val result = Process(fullCommand, gitBase).!
+        if (result != 0) {
+          sys.error(s"`git $cmd` failed with exit code $result")
+        }
+      }
+
+      val currentBranch =
+        Process(Seq("git", "rev-parse", "--abbrev-ref", "HEAD"), gitBase).!!.trim()
+
+      log.info(s"Pushing updated index to $indexSite...")
+      val attemptPushingIndex = Try {
+        git("checkout", "gh-pages")
+        IO.copy(List(indexTarget -> gitBase / "index.yaml"))
+        git("add", "index.yaml")
+        git("commit", "-m", s"Update index ($version)")
+        git("push", "-f", "origin", "gh-pages")
+      }
+
+      attemptPushingIndex match {
+        case Success(_) =>
+          log.info(s"Successfully pushed index to $indexSite")
+          git("checkout", currentBranch)
+        case Failure(exception) =>
+          git("checkout", currentBranch)
+          sys.error(s"Failed to push index to $indexSite: ${exception.getMessage}")
       }
     },
     publish := Def.taskDyn {
