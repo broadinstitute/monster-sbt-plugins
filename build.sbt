@@ -15,7 +15,7 @@ val commonSettings = Seq(
 lazy val `monster-sbt-plugins` = project
   .in(file("."))
   .settings(publish / skip := true)
-  .aggregate(`sbt-plugins-core`, `sbt-plugins-jade`, `sbt-plugins-scio`)
+  .aggregate(`sbt-plugins-core`, `sbt-plugins-jade`, `sbt-plugins-scio`, `sbt-plugins-helm`)
 
 /** 'Core' plugins for use across all Monster sbt projects. */
 lazy val `sbt-plugins-core` = project
@@ -53,3 +53,15 @@ lazy val `sbt-plugins-scio` = project
   .enablePlugins(MonsterLibraryPlugin)
   .dependsOn(`sbt-plugins-core`)
   .settings(commonSettings)
+
+/** Plugins for Monster sbt projects that contain Helm charts. */
+lazy val `sbt-plugins-helm` = project
+  .in(file("plugins/helm"))
+  .enablePlugins(MonsterLibraryPlugin)
+  .dependsOn(`sbt-plugins-core`)
+  .settings(
+    commonSettings,
+    libraryDependencies ++= Seq(
+      "io.circe" %% "circe-yaml" % "0.12.0"
+    )
+  )
