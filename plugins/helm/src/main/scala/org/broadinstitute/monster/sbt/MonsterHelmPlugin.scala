@@ -120,7 +120,7 @@ object MonsterHelmPlugin extends AutoPlugin {
         git("checkout", "gh-pages")
         IO.copy(List(indexTarget -> gitBase / "index.yaml"))
         git("add", "index.yaml")
-        git("commit", "-m", s"Update index ($version)")
+        git("commit", "-m", "Update index.")
         git("push", "-f", "origin", "gh-pages")
       }
 
