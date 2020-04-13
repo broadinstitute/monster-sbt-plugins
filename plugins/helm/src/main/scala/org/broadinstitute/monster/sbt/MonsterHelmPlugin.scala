@@ -24,8 +24,7 @@ object MonsterHelmPlugin extends AutoPlugin {
 
   override def projectSettings: Seq[Def.Setting[_]] = Seq(
     helmStagingDirectory := target.value / "helm",
-    helmChartOrganization := "broadinstitute",
-    helmChartRepository := "monster-helm",
+    helmChartLocalIndex := helmStagingDirectory.value / "index.yaml",
     packageHelmChart := {
       // Assumes the project is a valid Helm chart.
       val sourceDir = baseDirectory.value
@@ -68,29 +67,52 @@ object MonsterHelmPlugin extends AutoPlugin {
       }
       targetDir
     },
+    releaseHelmChart := {
+      val log = streams.value.log
+      val packageDir = packageHelmChart.value.getAbsolutePath()
+      val org = helmChartOrganization.value
+      val repo = helmChartRepository.value
+      val indexTarget = helmChartLocalIndex.value
+
+      // Assumes chart-releaser is available on the local PATH,
+      // and that CR_TOKEN is in the environment.
+      def cr(cmd: String, args: Map[String, String]): Seq[String] =
+        "cr" :: cmd :: args.toList.flatMap { case (k, v) => List(k, v) }
+
+      val uploadCommand =
+        cr("upload", Map("-o" -> org, "-r" -> repo, "-p" -> packageDir))
+
+      log.info(s"Uploading Helm chart for ${name.value} to $org/$repo...")
+      val uploadResult = Process(uploadCommand).!
+      if (uploadResult != 0) {
+        sys.error(s"`cr upload` failed with exit code $uploadResult")
+      }
+
+      val indexSite = s"https://$org.github.io/$repo"
+      val indexCommand = cr(
+        "index",
+        Map(
+          "-c" -> indexSite,
+          "-o" -> org,
+          "-r" -> repo,
+          "-p" -> packageDir,
+          "-i" -> indexTarget.getAbsolutePath()
+        )
+      )
+
+      log.info(s"Adding Helm chart for ${name.value} to index for $indexSite...")
+      val indexResult = Process(indexCommand).!
+      if (indexResult != 0) {
+        sys.error(s"`cr index` failed with exit code $indexResult")
+      }
+    },
     publish := Def.taskDyn {
       if (isSnapshot.value) {
         // Don't bother publishing SNAPSHOT releases, since we can
         // always sync w/ Flux instead.
         Def.task {}
       } else {
-        Def.task {
-          val log = streams.value.log
-          val packagedDirectory = packageHelmChart.value
-          val org = helmChartOrganization.value
-          val repo = helmChartRepository.value
-
-          // Assumes chart-releaser is available on the local PATH,
-          // and that CR_TOKEN is in the environment.
-          val uploadCommand =
-            Seq("cr", "upload", "-o", org, "-r", repo, "-p", packagedDirectory.getAbsolutePath())
-
-          log.info(s"Uploading Helm chart for ${name.value} to $org/$repo...")
-          val uploadResult = Process(uploadCommand).!
-          if (uploadResult != 0) {
-            sys.error(s"`cr upload` failed with exit code $uploadResult")
-          }
-        }
+        releaseHelmChart.toTask
       }
     }.value,
     // Doesn't make sense to publish a Helm chart locally(?)
