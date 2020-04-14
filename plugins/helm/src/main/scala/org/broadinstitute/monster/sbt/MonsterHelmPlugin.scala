@@ -77,7 +77,7 @@ object MonsterHelmPlugin extends AutoPlugin {
 
       // Assumes chart-releaser is available on the local PATH,
       // and that CR_TOKEN is in the environment.
-      def cr(cmd: String, args: Map[String, String]): Unit = {
+      def cr(cmd: String, args: (String, String)*): Unit = {
         val fullCommand =
           "cr" :: cmd :: args.toList.flatMap { case (k, v) => List(k, v) }
         val result = Process(fullCommand).!
@@ -87,19 +87,17 @@ object MonsterHelmPlugin extends AutoPlugin {
       }
 
       log.info(s"Uploading Helm chart for ${name.value} to $org/$repo...")
-      cr("upload", Map("-o" -> org, "-r" -> repo, "-p" -> packageDir))
+      cr("upload", "-o" -> org, "-r" -> repo, "-p" -> packageDir)
 
       val indexSite = s"https://$org.github.io/$repo"
       log.info(s"Adding Helm chart for ${name.value} to index for $indexSite...")
       cr(
         "index",
-        Map(
-          "-c" -> indexSite,
-          "-o" -> org,
-          "-r" -> repo,
-          "-p" -> packageDir,
-          "-i" -> indexTarget.getAbsolutePath()
-        )
+        "-c" -> indexSite,
+        "-o" -> org,
+        "-r" -> repo,
+        "-p" -> packageDir,
+        "-i" -> indexTarget.getAbsolutePath()
       )
 
       val gitBase = (ThisBuild / baseDirectory).value
