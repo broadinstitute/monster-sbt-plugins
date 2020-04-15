@@ -139,9 +139,15 @@ object MonsterHelmPlugin extends AutoPlugin {
       val attemptPushingIndex = Try {
         git("checkout", "gh-pages")
         IO.copyFile(indexTarget, gitBase / "index.yaml")
-        git("add", "index.yaml")
-        git("commit", "-m", "Update index.")
-        git("push", "-f", "origin", "gh-pages")
+
+        val diffCode = Process(Seq("git", "diff", "--quiet"), gitBase).!
+        if (diffCode == 0) {
+          log.info(s"Index for $indexSite is unchanged")
+        } else {
+          git("add", "index.yaml")
+          git("commit", "-m", "Update index.")
+          git("push", "-f", "origin", "gh-pages")
+        }
       }
 
       attemptPushingIndex match {
