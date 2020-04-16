@@ -50,17 +50,16 @@ object MonsterHelmPlugin extends AutoPlugin {
     IO.delete(targetDir)
     IO.createDirectory(targetDir)
 
-    val packageCommand = Seq(
-      "helm",
-      "package",
-      tmpDir.getAbsolutePath(),
-      "--destination",
-      targetDir.getAbsolutePath()
-    )
-    val packageResult = Process(packageCommand).!
-    if (packageResult != 0) {
-      sys.error(s"`helm package` failed with exit code $packageResult")
+    def helm(cmd: String, args: String*): Unit = {
+      val fullCommand = "helm" :: cmd :: args.toList
+      val result = Process(fullCommand).!
+      if (result != 0) {
+        sys.error(s"`helm $cmd` failed with exit code $result")
+      }
     }
+
+    helm("dependency", "update", tmpDir.getAbsolutePath())
+    helm("package", tmpDir.getAbsolutePath(), "--destination", targetDir.getAbsolutePath())
   }
 
   // Assumes chart-releaser is available on the local PATH,
