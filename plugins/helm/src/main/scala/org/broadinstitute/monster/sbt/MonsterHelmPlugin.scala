@@ -75,8 +75,8 @@ object MonsterHelmPlugin extends AutoPlugin {
   }
 
   override def projectSettings: Seq[Def.Setting[_]] = Seq(
-    helmStagingDirectory := target.value / "helm",
-    helmChartLocalIndex := helmStagingDirectory.value / "index.yaml",
+    helmStagingDirectory := target.value / "helm" / "packaged",
+    helmChartLocalIndex := target.value / "helm" / "index.yaml",
     packageHelmChart / fileInputs += baseDirectory.value.toGlob / **,
     packageHelmChart := {
       val inputChanges = packageHelmChart.inputFileChanges
@@ -90,7 +90,8 @@ object MonsterHelmPlugin extends AutoPlugin {
         .filterNot(_.startsWith(targetDir))
 
       val packageTarget = helmStagingDirectory.value
-      if (filteredChanges.nonEmpty) {
+      IO.createDirectory(packageTarget)
+      if (filteredChanges.nonEmpty || packageTarget.list().isEmpty) {
         packageChart(baseDirectory.value, version.value, packageTarget)
       }
       packageTarget
@@ -113,6 +114,7 @@ object MonsterHelmPlugin extends AutoPlugin {
 
       val indexSite = s"https://$org.github.io/$repo"
       log.info(s"Adding Helm chart for ${name.value} to index for $indexSite...")
+      IO.createDirectory(indexTarget.getParentFile())
       cr(
         "index",
         "-c" -> indexSite,
