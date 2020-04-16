@@ -53,5 +53,6 @@ Eventually we intend to publish a higher-level template repository containing th
 | `MonsterDockerPlugin` | `sbt-plugins-core` | Settings for publishing to DSP's public GCR repository. |
 | `MonsterJadeDatasetPlugin` | `sbt-plugins-jade` | Settings for working with Jade datasets and publishing schema images to GCR. |
 | `MonsterScioPipelinePlugin` | `sbt-plugins-scio` | Settings for developing Scio projects and publishing runner images to GCR. |
+| `MonsterHelmPlugin` | `sbt-plugins-helm` | Settings for developing Helm charts and publishing charts to GitHub pages. |
 
 See the individual plugin directories for more documentation about each artifact.

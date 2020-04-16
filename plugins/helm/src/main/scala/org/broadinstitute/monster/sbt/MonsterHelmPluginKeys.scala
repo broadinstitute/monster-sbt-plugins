@@ -23,4 +23,8 @@ trait MonsterHelmPluginKeys {
   val packageHelmChart: TaskKey[File] = taskKey("Package the project's Helm chart")
 
   val releaseHelmChart: TaskKey[Unit] = taskKey("Upload the project's Helm chart to GitHub")
+
+  val reindexHelmRepository: TaskKey[Unit] = taskKey(
+    "Update the index.yaml for the project's Helm repository"
+  )
 }
