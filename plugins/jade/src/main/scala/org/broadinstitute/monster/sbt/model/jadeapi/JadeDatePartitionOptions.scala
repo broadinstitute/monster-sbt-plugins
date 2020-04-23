@@ -9,7 +9,7 @@ case class JadeDatePartitionOptions(column: JadeIdentifier)
 object JadeDatePartitionOptions {
 
   val IngestDate: JadeDatePartitionOptions =
-    JadeDatePartitionOptions(new JadeIdentifier("daterepo_ingest_date"))
+    JadeDatePartitionOptions(new JadeIdentifier("datarepo_ingest_date"))
 
   implicit val encoder: Encoder[JadeDatePartitionOptions] = deriveEncoder
 }
