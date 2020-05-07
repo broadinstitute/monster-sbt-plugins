@@ -446,7 +446,7 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |      _root_.io.circe.derivation.renaming.snakeCase,
        |      _root_.scala.None
        |    ).mapJson { obj =>
-       |      _root_.io.circe.Json.fromString(obj.noSpaces)
+       |      _root_.io.circe.Json.fromString(obj.dropNullValues.noSpaces)
        |    }
        |}
        |""".stripMargin
@@ -473,7 +473,7 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |      _root_.io.circe.derivation.renaming.snakeCase,
        |      _root_.scala.None
        |    ).mapJson { obj =>
-       |      _root_.io.circe.Json.fromString(obj.noSpaces)
+       |      _root_.io.circe.Json.fromString(obj.dropNullValues.noSpaces)
        |    }
        |}
        |""".stripMargin
@@ -535,7 +535,7 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |      _root_.io.circe.derivation.renaming.snakeCase,
        |      _root_.scala.None
        |    ).mapJson { obj =>
-       |      _root_.io.circe.Json.fromString(obj.noSpaces)
+       |      _root_.io.circe.Json.fromString(obj.dropNullValues.noSpaces)
        |    }
        |}
        |""".stripMargin
@@ -557,7 +557,7 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
              _root_.io.circe.derivation.renaming.snakeCase,
              _root_.scala.None
            ).mapJson { obj =>
-             _root_.io.circe.Json.fromString(obj.noSpaces)
+             _root_.io.circe.Json.fromString(obj.dropNullValues.noSpaces)
            }
        }
        """ should compile
@@ -585,7 +585,7 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |      _root_.io.circe.derivation.renaming.snakeCase,
        |      _root_.scala.None
        |    ).mapJson { obj =>
-       |      _root_.io.circe.Json.fromString(obj.noSpaces)
+       |      _root_.io.circe.Json.fromString(obj.dropNullValues.noSpaces)
        |    }
        |}
        |""".stripMargin
@@ -613,7 +613,7 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |      _root_.io.circe.derivation.renaming.snakeCase,
        |      _root_.scala.None
        |    ).mapJson { obj =>
-       |      _root_.io.circe.Json.fromString(obj.noSpaces)
+       |      _root_.io.circe.Json.fromString(obj.dropNullValues.noSpaces)
        |    }
        |}
        |""".stripMargin
@@ -658,7 +658,7 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |      _root_.io.circe.derivation.renaming.snakeCase,
        |      _root_.scala.None
        |    ).mapJson { obj =>
-       |      _root_.io.circe.Json.fromString(obj.noSpaces)
+       |      _root_.io.circe.Json.fromString(obj.dropNullValues.noSpaces)
        |    }
        |}
        |""".stripMargin
@@ -675,7 +675,7 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
              _root_.io.circe.derivation.renaming.snakeCase,
              _root_.scala.None
            ).mapJson { obj =>
-             _root_.io.circe.Json.fromString(obj.noSpaces)
+             _root_.io.circe.Json.fromString(obj.dropNullValues.noSpaces)
            }
        }
        """ should compile
@@ -703,7 +703,7 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |      _root_.io.circe.derivation.renaming.snakeCase,
        |      _root_.scala.None
        |    ).mapJson { obj =>
-       |      _root_.io.circe.Json.fromString(obj.noSpaces)
+       |      _root_.io.circe.Json.fromString(obj.dropNullValues.noSpaces)
        |    }
        |}
        |""".stripMargin
