@@ -41,8 +41,21 @@ object MonsterHelmPlugin extends AutoPlugin {
       case Left(err)     => sys.error(s"Could not parse $chartMetadata as YAML: ${err.getMessage}")
     }
     val realVersion = Json.fromString(version)
-    val updatedMetadata =
-      parsedMetadata.deepMerge(Json.obj("version" -> realVersion, "appVersion" -> realVersion))
+    val updatedMetadata = parsedMetadata.deepMerge {
+      Json.obj(
+        "version" -> realVersion,
+        "appVersion" -> realVersion,
+        /*
+         * Helm treats the top-level "global" key specially:
+         * https://helm.sh/docs/chart_template_guide/subcharts_and_globals/#global-chart-values
+         *
+         * Any values included there are automatically made available to subcharts,
+         * which is useful for threading the version through without knowing exactly
+         * how many charts need it.
+         */
+        "global" -> Json.obj("version" -> realVersion)
+      )
+    }
     IO.write(tmpDir / "Chart.yaml", updatedMetadata.asYaml.spaces2)
 
     // Use helm to package the staged template.
