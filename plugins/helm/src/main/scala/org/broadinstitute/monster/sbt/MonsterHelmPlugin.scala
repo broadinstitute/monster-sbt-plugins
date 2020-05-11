@@ -27,7 +27,8 @@ object MonsterHelmPlugin extends AutoPlugin {
   def packageChart(
     chartRoot: File,
     version: String,
-    targetDir: File
+    targetDir: File,
+    injectVersionValues: (Json, String) => Json
   ): Unit = {
     val tmpDir = IO.createTemporaryDirectory
     IO.copyDirectory(chartRoot, tmpDir)
@@ -44,6 +45,19 @@ object MonsterHelmPlugin extends AutoPlugin {
     val updatedMetadata =
       parsedMetadata.deepMerge(Json.obj("version" -> realVersion, "appVersion" -> realVersion))
     IO.write(tmpDir / "Chart.yaml", updatedMetadata.asYaml.spaces2)
+
+    // Inject the version into the values.yaml.
+    val chartValues = chartRoot / "values.yaml"
+    val parsedValues = if (chartValues.exists()) {
+      yaml.parser.parse(IO.read(chartValues)) match {
+        case Right(parsed) => parsed
+        case Left(err)     => sys.error(s"Could not parse $chartValues as YAML: ${err.getMessage}")
+      }
+    } else {
+      Json.obj()
+    }
+    val updatedValues = injectVersionValues(parsedValues, version)
+    IO.write(tmpDir / "values.yaml", updatedValues.asYaml.spaces2)
 
     // Use helm to package the staged template.
     // Assumes helm is available on the local PATH.
@@ -76,6 +90,7 @@ object MonsterHelmPlugin extends AutoPlugin {
   override def projectSettings: Seq[Def.Setting[_]] = Seq(
     helmStagingDirectory := target.value / "helm" / "packaged",
     helmChartLocalIndex := target.value / "helm" / "index.yaml",
+    helmInjectVersionValues := { (baseValues, _) => baseValues },
     packageHelmChart / fileInputs += baseDirectory.value.toGlob / **,
     packageHelmChart := {
       val inputChanges = packageHelmChart.inputFileChanges
@@ -91,7 +106,12 @@ object MonsterHelmPlugin extends AutoPlugin {
       val packageTarget = helmStagingDirectory.value
       IO.createDirectory(packageTarget)
       if (filteredChanges.nonEmpty || packageTarget.list().isEmpty) {
-        packageChart(baseDirectory.value, version.value, packageTarget)
+        packageChart(
+          baseDirectory.value,
+          version.value,
+          packageTarget,
+          helmInjectVersionValues.value
+        )
       }
       packageTarget
     },

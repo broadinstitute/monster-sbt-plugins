@@ -1,5 +1,6 @@
 package org.broadinstitute.monster.sbt
 
+import io.circe.Json
 import sbt._
 
 trait MonsterHelmPluginKeys {
@@ -18,6 +19,10 @@ trait MonsterHelmPluginKeys {
 
   val helmChartRepository: SettingKey[String] = settingKey(
     "GitHub repository where Helm charts should be published"
+  )
+
+  val helmInjectVersionValues: SettingKey[(Json, String) => Json] = settingKey(
+    "Pre-packaging hook allowing the current version to be written into values.yaml"
   )
 
   val packageHelmChart: TaskKey[File] = taskKey("Package the project's Helm chart")
