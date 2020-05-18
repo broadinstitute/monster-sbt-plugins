@@ -114,7 +114,7 @@ object ClassGenerator {
         .map(column => s"\n${fieldForColumn(column)}")
         .mkString(",")
       val fieldsWithInitValues = baseTable.columns.map(initValueForColumn)
-      val initParams = fieldsWithInitValues.map(f => s"\n$f").mkString(",")
+      val initParams = fieldsWithInitValues.map(f => s"\n      $f").mkString(",")
 
       s"""package $tablePackage
          |
@@ -126,9 +126,10 @@ object ClassGenerator {
          |      _root_.io.circe.derivation.renaming.snakeCase,
          |      _root_.scala.None
          |    )
+         |
          |  def init($requiredClassParams): $name = {
          |    $name($initParams)
-         |  }
+         |  }g
          |}
          |""".stripMargin
     }

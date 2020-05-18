@@ -57,6 +57,10 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |      _root_.io.circe.derivation.renaming.snakeCase,
        |      _root_.scala.None
        |    )
+       |
+       |  def init(): NoColumns = {
+       |    NoColumns()
+       |  }
        |}
        |""".stripMargin
   )
@@ -82,6 +86,11 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |      _root_.io.circe.derivation.renaming.snakeCase,
        |      _root_.scala.None
        |    )
+       |
+       |  def init(): OneColumn = {
+       |    OneColumn(
+       |      testColumn = _root_.scala.Option.empty[_root_.java.lang.String])
+       |  }
        |}
        |""".stripMargin
   )
