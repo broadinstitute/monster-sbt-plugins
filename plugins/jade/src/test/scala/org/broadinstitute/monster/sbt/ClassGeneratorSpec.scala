@@ -151,6 +151,18 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |      _root_.io.circe.derivation.renaming.snakeCase,
        |      _root_.scala.None
        |    )
+       |
+       |  def init(): AllColumns = {
+       |    AllColumns(
+       |      boolColumn = _root_.scala.Option.empty[_root_.scala.Boolean],
+       |      floatColumn = _root_.scala.Option.empty[_root_.scala.Double],
+       |      intColumn = _root_.scala.Option.empty[_root_.scala.Long],
+       |      stringColumn = _root_.scala.Option.empty[_root_.java.lang.String],
+       |      dateColumn = _root_.scala.Option.empty[_root_.java.time.LocalDate],
+       |      timestampColumn = _root_.scala.Option.empty[_root_.java.time.OffsetDateTime],
+       |      dirColumn = _root_.scala.Option.empty[_root_.java.lang.String],
+       |      fileColumn = _root_.scala.Option.empty[_root_.java.lang.String])
+       |  }
        |}
        |""".stripMargin
   )
@@ -174,6 +186,18 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
              _root_.io.circe.derivation.renaming.snakeCase,
              _root_.scala.None
            )
+
+         def init(): AllColumns = {
+           AllColumns(
+             boolColumn = _root_.scala.Option.empty[_root_.scala.Boolean],
+             floatColumn = _root_.scala.Option.empty[_root_.scala.Double],
+             intColumn = _root_.scala.Option.empty[_root_.scala.Long],
+             stringColumn = _root_.scala.Option.empty[_root_.java.lang.String],
+             dateColumn = _root_.scala.Option.empty[_root_.java.time.LocalDate],
+             timestampColumn = _root_.scala.Option.empty[_root_.java.time.OffsetDateTime],
+             dirColumn = _root_.scala.Option.empty[_root_.java.lang.String],
+             fileColumn = _root_.scala.Option.empty[_root_.java.lang.String])
+         }
        }
        """ should compile
   }
@@ -201,6 +225,12 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |      _root_.io.circe.derivation.renaming.snakeCase,
        |      _root_.scala.None
        |    )
+       |
+       |  def init(
+       |    testRequired: _root_.java.lang.String): RequiredColumn = {
+       |    RequiredColumn(
+       |      testRequired = testRequired)
+       |  }
        |}
        |""".stripMargin
   )
@@ -227,6 +257,12 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |      _root_.io.circe.derivation.renaming.snakeCase,
        |      _root_.scala.None
        |    )
+       |
+       |  def init(
+       |    testKey: _root_.java.lang.String): KeyColumn = {
+       |    KeyColumn(
+       |      testKey = testKey)
+       |  }
        |}
        |""".stripMargin
   )

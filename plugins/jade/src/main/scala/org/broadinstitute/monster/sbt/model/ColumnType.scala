@@ -52,6 +52,7 @@ object ColumnType extends Enum[ColumnType] with CirceEnum[ColumnType] {
 
     override def getDefaultValue(scalaType: String): Option[String] =
       Some(s"_root_.scala.Option.empty[$scalaType]")
+
     override val asBigQuery: String = "NULLABLE"
   }
 
@@ -63,6 +64,7 @@ object ColumnType extends Enum[ColumnType] with CirceEnum[ColumnType] {
 
     override def getDefaultValue(scalaType: String): Option[String] =
       Some(s"_root_.scala.Array.empty[$scalaType]")
+
     override val asBigQuery: String = "REPEATED"
   }
 }
