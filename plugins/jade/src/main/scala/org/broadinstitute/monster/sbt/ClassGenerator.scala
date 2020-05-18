@@ -114,7 +114,7 @@ object ClassGenerator {
         .map(column => s"\n    ${fieldForColumn(column)}")
         .mkString(",")
       val simpleInitFields = baseTable.columns.map(initValueForColumn)
-      val structInitFields = baseTable.structColumns.map(initValueForStruct)
+      val structInitFields = baseTable.structColumns.map(initValueForStruct(structPackage, _))
       val initParams = (simpleInitFields ++ structInitFields).map(f => s"\n      $f").mkString(",")
 
       s"""package $tablePackage
