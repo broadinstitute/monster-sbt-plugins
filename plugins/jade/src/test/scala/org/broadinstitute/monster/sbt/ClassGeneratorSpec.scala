@@ -289,6 +289,11 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |      _root_.io.circe.derivation.renaming.snakeCase,
        |      _root_.scala.None
        |    )
+       |
+       |  def init(): ArrayColumn = {
+       |    ArrayColumn(
+       |      testArray = _root_.scala.Array.empty[_root_.scala.Double])
+       |  }
        |}
        |""".stripMargin
   )
@@ -332,6 +337,16 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |      _root_.io.circe.derivation.renaming.snakeCase,
        |      _root_.scala.None
        |    )
+       |
+       |  def init(
+       |    keyColumn: _root_.java.time.LocalDate,
+       |    requiredColumn: _root_.scala.Double): AllModifiers = {
+       |    AllModifiers(
+       |      keyColumn = keyColumn,
+       |      normalColumn = _root_.scala.Option.empty[_root_.scala.Boolean],
+       |      arrayColumn = _root_.scala.Array.empty[_root_.scala.Long],
+       |      requiredColumn = requiredColumn)
+       |  }
        |}
        |""".stripMargin
   )
@@ -368,6 +383,11 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |      _root_.io.circe.derivation.renaming.snakeCase,
        |      _root_.scala.None
        |    )
+       |
+       |  def init(): TypeColumn = {
+       |    TypeColumn(
+       |      `type` = _root_.scala.Option.empty[_root_.scala.Double])
+       |  }
        |}
        |""".stripMargin
   )
