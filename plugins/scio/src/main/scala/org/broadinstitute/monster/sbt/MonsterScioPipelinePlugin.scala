@@ -8,7 +8,7 @@ import sbt.Keys._
 object MonsterScioPipelinePlugin extends AutoPlugin {
   override def requires: Plugins = MonsterDockerPlugin
 
-  val ScioUtilsVersion = "1.3.0"
+  val ScioUtilsVersion = "1.3.1"
 
   override def projectSettings: Seq[Def.Setting[_]] = Seq(
     // Set best-practice compiler flags for Scio.
