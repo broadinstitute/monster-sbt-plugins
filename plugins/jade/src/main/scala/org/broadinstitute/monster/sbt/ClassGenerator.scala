@@ -106,6 +106,16 @@ object ClassGenerator {
       val structFields = baseTable.structColumns.map(fieldForStruct(structPackage, _))
       val classParams = (simpleFields ++ structFields).map(f => s"\n$f").mkString(",")
 
+      // TODO: init struct values too
+      val requiredClassParams = baseTable.columns
+        .filter(column =>
+          column.`type` == ColumnType.Required || column.`type` == ColumnType.PrimaryKey
+        )
+        .map(column => s"\n${fieldForColumn(column)}")
+        .mkString(",")
+      val fieldsWithInitValues = baseTable.columns.map(initValueForColumn)
+      val initParams = fieldsWithInitValues.map(f => s"\n$f").mkString(",")
+
       s"""package $tablePackage
          |
          |case class $name($classParams)
@@ -116,6 +126,9 @@ object ClassGenerator {
          |      _root_.io.circe.derivation.renaming.snakeCase,
          |      _root_.scala.None
          |    )
+         |  def init($requiredClassParams): $name = {
+         |    $name($initParams)
+         |  }
          |}
          |""".stripMargin
     }
@@ -151,12 +164,27 @@ object ClassGenerator {
          |""".stripMargin
     }
 
+  /**
+    * Set the field name equal to the field's default value.
+    * If there is no default value, set it equal to the its own field name.
+    */
+  private def initValueForColumn(jadeColumn: SimpleColumn): String = {
+    val columnName = getFieldName(jadeColumn.name)
+    val scalaType = jadeColumn.datatype.asScala
+    val defaultValue = jadeColumn.`type`.getDefaultValue(scalaType)
+
+    s"$columnName = ${defaultValue.getOrElse(columnName)}"
+  }
+
+  /** Get the Scala field name for a Jade column. */
+  private def getFieldName(columnName: JadeIdentifier): String = {
+    val rawColumnName = snakeToCamel(columnName, titleCase = false)
+    if (keywords.contains(rawColumnName)) s"`$rawColumnName`" else rawColumnName
+  }
+
   /** Get the Scala field declaration for a Jade column. */
   private def fieldForColumn(jadeColumn: SimpleColumn): String = {
-    val rawColumnName = snakeToCamel(jadeColumn.name, titleCase = false)
-    val columnName =
-      if (keywords.contains(rawColumnName)) s"`$rawColumnName`" else rawColumnName
-
+    val columnName = getFieldName(jadeColumn.name)
     val columnType = jadeColumn.datatype.asScala
     val modifiedType = jadeColumn.`type`.modify(columnType)
 
@@ -168,9 +196,7 @@ object ClassGenerator {
     structPackage: String,
     structColumn: StructColumn
   ): String = {
-    val rawColumnName = snakeToCamel(structColumn.name, titleCase = false)
-    val columnName =
-      if (keywords.contains(rawColumnName)) s"`$rawColumnName`" else rawColumnName
+    val columnName = getFieldName(structColumn.name)
 
     val structType =
       s"_root_.$structPackage.${snakeToCamel(structColumn.structName, titleCase = true)}"
