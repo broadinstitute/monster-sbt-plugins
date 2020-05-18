@@ -106,13 +106,18 @@ object ClassGenerator {
       val structFields = baseTable.structColumns.map(fieldForStruct(structPackage, _))
       val classParams = (simpleFields ++ structFields).map(f => s"\n$f").mkString(",")
 
-      // TODO: init struct values too
-      val requiredClassParams = baseTable.columns
+      // TODO: make a helper method to do some of this
+      val requiredColumnParams = baseTable.columns
         .filter(column =>
           column.`type` == ColumnType.Required || column.`type` == ColumnType.PrimaryKey
         )
         .map(column => s"\n    ${fieldForColumn(column)}")
-        .mkString(",")
+      val requiredStructParams = baseTable.structColumns
+        .filter(column =>
+          column.`type` == ColumnType.Required || column.`type` == ColumnType.PrimaryKey
+        )
+        .map(column => s"\n    ${fieldForStruct(structPackage, column)}")
+      val requiredClassParams = (requiredColumnParams ++ requiredStructParams).mkString(",")
       val simpleInitFields = baseTable.columns.map(initValueForColumn)
       val structInitFields = baseTable.structColumns.map(initValueForStruct(structPackage, _))
       val initParams = (simpleInitFields ++ structInitFields).map(f => s"\n      $f").mkString(",")

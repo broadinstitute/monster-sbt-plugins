@@ -419,6 +419,11 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |      _root_.io.circe.derivation.renaming.snakeCase,
        |      _root_.scala.None
        |    )
+       |
+       |  def init(): StructColumn = {
+       |    StructColumn(
+       |      comment = _root_.scala.Option.empty[_root_.$structPackage.RowComment])
+       |  }
        |}
        |""".stripMargin
   )
@@ -446,6 +451,12 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |      _root_.io.circe.derivation.renaming.snakeCase,
        |      _root_.scala.None
        |    )
+       |
+       |  def init(
+       |    requiredComment: _root_.$structPackage.Comment): RequiredStruct = {
+       |    RequiredStruct(
+       |      requiredComment = requiredComment)
+       |  }
        |}
        |""".stripMargin
   )
@@ -473,6 +484,11 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |      _root_.io.circe.derivation.renaming.snakeCase,
        |      _root_.scala.None
        |    )
+       |
+       |  def init(): RepeatedStruct = {
+       |    RepeatedStruct(
+       |      repeatedComment = _root_.scala.Array.empty[_root_.$structPackage.Comment123])
+       |  }
        |}
        |""".stripMargin
   )
