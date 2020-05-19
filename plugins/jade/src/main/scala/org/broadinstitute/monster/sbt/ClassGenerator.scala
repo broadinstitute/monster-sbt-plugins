@@ -101,26 +101,27 @@ object ClassGenerator {
     tableContent: String
   ): Either[Throwable, String] =
     parser.decode[MonsterTable](tableContent).map { baseTable =>
+      // Get the parameters for the class definition
       val name = snakeToCamel(baseTable.name, titleCase = true)
       val simpleFields = baseTable.columns.map(fieldForColumn)
       val structFields = baseTable.structColumns.map(fieldForStruct(structPackage, _))
       val classParams = (simpleFields ++ structFields).map(f => s"\n$f").mkString(",")
 
-      // TODO: make a helper method to do some of this
+      // Get the parameters for the init method definition
       val requiredColumnParams = baseTable.columns
-        .filter(column =>
-          column.`type` == ColumnType.Required || column.`type` == ColumnType.PrimaryKey
-        )
-        .map(column => s"\n    ${fieldForColumn(column)}")
+        .filter(_.`type`.isRequired)
+        .map(column => fieldForColumn(column))
       val requiredStructParams = baseTable.structColumns
-        .filter(column =>
-          column.`type` == ColumnType.Required || column.`type` == ColumnType.PrimaryKey
-        )
-        .map(column => s"\n    ${fieldForStruct(structPackage, column)}")
-      val requiredClassParams = (requiredColumnParams ++ requiredStructParams).mkString(",")
+        .filter(_.`type`.isRequired)
+        .map(column => fieldForStruct(structPackage, column))
+      val requiredParams =
+        (requiredColumnParams ++ requiredStructParams).map("\n    ".concat(_)).mkString(",")
+
+      // Get the values that should be used to initialize the object
       val simpleInitFields = baseTable.columns.map(initValueForColumn)
       val structInitFields = baseTable.structColumns.map(initValueForStruct(structPackage, _))
-      val initParams = (simpleInitFields ++ structInitFields).map(f => s"\n      $f").mkString(",")
+      val initClassParams =
+        (simpleInitFields ++ structInitFields).map(f => s"\n      $f").mkString(",")
 
       s"""package $tablePackage
          |
@@ -133,8 +134,8 @@ object ClassGenerator {
          |      _root_.scala.None
          |    )
          |
-         |  def init($requiredClassParams): $name = {
-         |    $name($initParams)
+         |  def init($requiredParams): $name = {
+         |    $name($initClassParams)
          |  }
          |}
          |""".stripMargin
@@ -187,9 +188,7 @@ object ClassGenerator {
     */
   private def initValueForColumn(jadeColumn: SimpleColumn): String = {
     val columnName = getFieldName(jadeColumn.name)
-    val scalaType = jadeColumn.datatype.asScala
-    val defaultValue = jadeColumn.`type`.getDefaultValue(scalaType)
-
+    val defaultValue = jadeColumn.`type`.getDefaultValue(jadeColumn.datatype.asScala)
     s"$columnName = ${defaultValue.getOrElse(columnName)}"
   }
 
@@ -201,29 +200,20 @@ object ClassGenerator {
     val columnName = getFieldName(structColumn.name)
     val structType = getStructType(structPackage, structColumn)
     val defaultValue = structColumn.`type`.getDefaultValue(structType)
-
     s"$columnName = ${defaultValue.getOrElse(columnName)}"
   }
 
   /** Get the Scala field declaration for a Jade column. */
   private def fieldForColumn(jadeColumn: SimpleColumn): String = {
-    val columnName = getFieldName(jadeColumn.name)
-    val columnType = jadeColumn.datatype.asScala
-    val modifiedType = jadeColumn.`type`.modify(columnType)
-
-    s"$columnName: $modifiedType"
+    val modifiedType = jadeColumn.`type`.modify(jadeColumn.datatype.asScala)
+    s"${getFieldName(jadeColumn.name)}: $modifiedType"
   }
 
   /** Get the Scala field declaration for a Jade column which references a struct. */
-  private def fieldForStruct(
-    structPackage: String,
-    structColumn: StructColumn
-  ): String = {
-    val columnName = getFieldName(structColumn.name)
+  private def fieldForStruct(structPackage: String, structColumn: StructColumn): String = {
     val structType = getStructType(structPackage, structColumn)
     val modifiedType = structColumn.`type`.modify(structType)
-
-    s"$columnName: $modifiedType"
+    s"${getFieldName(structColumn.name)}: $modifiedType"
   }
 
   /**
