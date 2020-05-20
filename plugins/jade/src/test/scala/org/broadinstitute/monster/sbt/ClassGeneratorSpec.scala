@@ -57,6 +57,10 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |      _root_.io.circe.derivation.renaming.snakeCase,
        |      _root_.scala.None
        |    )
+       |
+       |  def init(): NoColumns = {
+       |    NoColumns()
+       |  }
        |}
        |""".stripMargin
   )
@@ -82,6 +86,11 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |      _root_.io.circe.derivation.renaming.snakeCase,
        |      _root_.scala.None
        |    )
+       |
+       |  def init(): OneColumn = {
+       |    OneColumn(
+       |      testColumn = _root_.scala.Option.empty[_root_.java.lang.String])
+       |  }
        |}
        |""".stripMargin
   )
@@ -142,6 +151,18 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |      _root_.io.circe.derivation.renaming.snakeCase,
        |      _root_.scala.None
        |    )
+       |
+       |  def init(): AllColumns = {
+       |    AllColumns(
+       |      boolColumn = _root_.scala.Option.empty[_root_.scala.Boolean],
+       |      floatColumn = _root_.scala.Option.empty[_root_.scala.Double],
+       |      intColumn = _root_.scala.Option.empty[_root_.scala.Long],
+       |      stringColumn = _root_.scala.Option.empty[_root_.java.lang.String],
+       |      dateColumn = _root_.scala.Option.empty[_root_.java.time.LocalDate],
+       |      timestampColumn = _root_.scala.Option.empty[_root_.java.time.OffsetDateTime],
+       |      dirColumn = _root_.scala.Option.empty[_root_.java.lang.String],
+       |      fileColumn = _root_.scala.Option.empty[_root_.java.lang.String])
+       |  }
        |}
        |""".stripMargin
   )
@@ -165,6 +186,18 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
              _root_.io.circe.derivation.renaming.snakeCase,
              _root_.scala.None
            )
+
+         def init(): AllColumns = {
+           AllColumns(
+             boolColumn = _root_.scala.Option.empty[_root_.scala.Boolean],
+             floatColumn = _root_.scala.Option.empty[_root_.scala.Double],
+             intColumn = _root_.scala.Option.empty[_root_.scala.Long],
+             stringColumn = _root_.scala.Option.empty[_root_.java.lang.String],
+             dateColumn = _root_.scala.Option.empty[_root_.java.time.LocalDate],
+             timestampColumn = _root_.scala.Option.empty[_root_.java.time.OffsetDateTime],
+             dirColumn = _root_.scala.Option.empty[_root_.java.lang.String],
+             fileColumn = _root_.scala.Option.empty[_root_.java.lang.String])
+         }
        }
        """ should compile
   }
@@ -192,6 +225,12 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |      _root_.io.circe.derivation.renaming.snakeCase,
        |      _root_.scala.None
        |    )
+       |
+       |  def init(
+       |    testRequired: _root_.java.lang.String): RequiredColumn = {
+       |    RequiredColumn(
+       |      testRequired = testRequired)
+       |  }
        |}
        |""".stripMargin
   )
@@ -218,6 +257,12 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |      _root_.io.circe.derivation.renaming.snakeCase,
        |      _root_.scala.None
        |    )
+       |
+       |  def init(
+       |    testKey: _root_.java.lang.String): KeyColumn = {
+       |    KeyColumn(
+       |      testKey = testKey)
+       |  }
        |}
        |""".stripMargin
   )
@@ -244,6 +289,11 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |      _root_.io.circe.derivation.renaming.snakeCase,
        |      _root_.scala.None
        |    )
+       |
+       |  def init(): ArrayColumn = {
+       |    ArrayColumn(
+       |      testArray = _root_.scala.Array.empty[_root_.scala.Double])
+       |  }
        |}
        |""".stripMargin
   )
@@ -287,6 +337,16 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |      _root_.io.circe.derivation.renaming.snakeCase,
        |      _root_.scala.None
        |    )
+       |
+       |  def init(
+       |    keyColumn: _root_.java.time.LocalDate,
+       |    requiredColumn: _root_.scala.Double): AllModifiers = {
+       |    AllModifiers(
+       |      keyColumn = keyColumn,
+       |      normalColumn = _root_.scala.Option.empty[_root_.scala.Boolean],
+       |      arrayColumn = _root_.scala.Array.empty[_root_.scala.Long],
+       |      requiredColumn = requiredColumn)
+       |  }
        |}
        |""".stripMargin
   )
@@ -323,6 +383,11 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |      _root_.io.circe.derivation.renaming.snakeCase,
        |      _root_.scala.None
        |    )
+       |
+       |  def init(): TypeColumn = {
+       |    TypeColumn(
+       |      `type` = _root_.scala.Option.empty[_root_.scala.Double])
+       |  }
        |}
        |""".stripMargin
   )
@@ -354,6 +419,11 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |      _root_.io.circe.derivation.renaming.snakeCase,
        |      _root_.scala.None
        |    )
+       |
+       |  def init(): StructColumn = {
+       |    StructColumn(
+       |      comment = _root_.scala.Option.empty[_root_.$structPackage.RowComment])
+       |  }
        |}
        |""".stripMargin
   )
@@ -381,6 +451,12 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |      _root_.io.circe.derivation.renaming.snakeCase,
        |      _root_.scala.None
        |    )
+       |
+       |  def init(
+       |    requiredComment: _root_.$structPackage.Comment): RequiredStruct = {
+       |    RequiredStruct(
+       |      requiredComment = requiredComment)
+       |  }
        |}
        |""".stripMargin
   )
@@ -408,6 +484,11 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |      _root_.io.circe.derivation.renaming.snakeCase,
        |      _root_.scala.None
        |    )
+       |
+       |  def init(): RepeatedStruct = {
+       |    RepeatedStruct(
+       |      repeatedComment = _root_.scala.Array.empty[_root_.$structPackage.Comment123])
+       |  }
        |}
        |""".stripMargin
   )
