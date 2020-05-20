@@ -1,13 +1,9 @@
 package org.broadinstitute.monster.sbt
 
-import java.util.UUID
-
 import com.typesafe.sbt.packager.MappingsHelper
 import com.typesafe.sbt.packager.linux.LinuxKeys
 import sbt._
 import sbt.Keys._
-import sbt.complete.Parser
-import sbt.complete.DefaultParsers._
 import sbt.nio.Keys._
 
 /** Plugin for projects which ETL data into a Jade dataset. */
@@ -19,8 +15,6 @@ object MonsterJadeDatasetPlugin extends AutoPlugin with LinuxKeys {
 
   object autoImport extends MonsterJadeDatasetKeys
   import autoImport._
-
-  private val uuidParser: Parser[UUID] = mapOrFail(NotSpace)(UUID.fromString)
 
   // We inject circe as a dependency so we can include serialization
   // logic within generated source code.
@@ -66,10 +60,7 @@ object MonsterJadeDatasetPlugin extends AutoPlugin with LinuxKeys {
       logger = streams.value.log,
       gen = ClassGenerator.generateStructClass(jadeStructPackage.value, _)
     ),
-    generateJadeDataset := JadeDatasetGenerator.generateDataset(
-      name = jadeDatasetName.value,
-      description = jadeDatasetDescription.value,
-      profileId = (token(Space) ~> token(uuidParser, "<profile-id>")).parsed,
+    generateJadeSchema := JadeSchemaGenerator.generateSchema(
       inputDir = jadeTableSource.value,
       inputExtension = jadeTableExtension.value,
       outputDir = target.value,
