@@ -7,7 +7,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 class JadeSchemaGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
-  behavior of "JadeDatasetGenerator"
+  behavior of "JadeSchemaGenerator"
 
   private val participants = MonsterTable(
     name = new JadeIdentifier("participant"),
