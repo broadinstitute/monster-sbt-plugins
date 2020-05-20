@@ -11,7 +11,7 @@ import org.broadinstitute.monster.sbt.model.jadeapi._
 import sbt.internal.util.ManagedLogger
 import sbt.nio.file.{FileAttributes, FileTreeView}
 
-/** Utilities for generating Jade dataset definitions from Monster table definitions. */
+/** Utilities for generating Jade schema definitions from Monster table definitions. */
 object JadeSchemaGenerator {
   private val jsonParser: JawnParser = new JawnParser()
 
@@ -21,7 +21,7 @@ object JadeSchemaGenerator {
     *
     * @param inputDir directory containing table definitions in our JSON format
     * @param inputExtension file extension used for our table definitions
-    * @param outputDir directory where the Jade dataset request should be written
+    * @param outputDir directory where the Jade schema should be written
     * @param fileView utility which can inspect the local filesystem
     * @param logger utility which can write logs to the sbt console
     */
@@ -43,9 +43,9 @@ object JadeSchemaGenerator {
     logger.info(s"Generating Jade schema from ${sourceTables.length} input tables")
     generateSchema(sourceTables) match {
       case Left(err) => sys.error(err)
-      case Right(datasetModel) =>
+      case Right(schemaModel) =>
         val out = outputDir / "schema.json"
-        IO.write(out, datasetModel.asJson.noSpaces)
+        IO.write(out, schemaModel.asJson.noSpaces)
         logger.info(s"Wrote Jade schema to ${out.getAbsolutePath}")
         out
     }
@@ -54,7 +54,7 @@ object JadeSchemaGenerator {
   /**
     * Generate a Jade schema from a collection of Monster tables.
     *
-    * @param tables collection of tables to include in the dataset
+    * @param tables collection of tables to include in the schema
     */
   def generateSchema(tables: Seq[MonsterTable]): Either[String, JadeSchema] =
     extractRelationships(tables).map { rels =>
