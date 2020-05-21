@@ -74,8 +74,11 @@ class Helm(io: Helm.IO, runCommand: (String, Seq[String]) => Unit) {
     // Download dependencies.
     runCommand("dependency", List("update", tmpDir.getAbsolutePath))
 
-    // Lint the chart using the example inputs.
-    runCommand("lint", List(tmpDir.getAbsolutePath, "--values", inputValues.getAbsolutePath))
+    // Attempt to render the chart using the example inputs.
+    runCommand(
+      "template",
+      List(tmpDir.getAbsolutePath, "--values", inputValues.getAbsolutePath, "--debug")
+    )
   }
 
   /** Stage a Helm chart in a temporary directory, removing sbt clutter. */

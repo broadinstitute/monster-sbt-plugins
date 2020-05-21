@@ -3,7 +3,10 @@ package org.broadinstitute.monster.sbt
 import sbt._
 import sbt.Keys._
 import sbt.nio.Keys._
+
+import scala.collection.mutable
 import scala.sys.process._
+import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -35,11 +38,25 @@ object MonsterHelmPlugin extends AutoPlugin {
 
   override def projectSettings: Seq[Def.Setting[_]] = Seq(
     // Test-related settings.
-    Test / helmExampleValuesSource := (Test / sourceDirectory).value / "helm-values",
+    Test / helmExampleValuesSource := baseDirectory.value / "example-values",
     Test / test := {
+      val log = streams.value.log
       val chart = baseDirectory.value
       val examples = (Test / helmExampleValuesSource).value.glob("*.yaml")
-      examples.get().foreach(Helm.clp.lintChart(chart, _))
+
+      val failedExamples = new mutable.ArrayBuffer[String]
+      examples.get().foreach { example =>
+        val exampleName = example.getName
+        log.info(s"Attempting to render chart with values: $exampleName")
+        try {
+          Helm.clp.lintChart(chart, example)
+        } catch {
+          case NonFatal(_) => failedExamples.append(exampleName)
+        }
+      }
+      if (failedExamples.nonEmpty) {
+        sys.error(s"Linting failed for example(s): ${failedExamples.mkString(", ")}")
+      }
     },
     // Publish-related settings.
     helmStagingDirectory := target.value / "helm" / "packaged",

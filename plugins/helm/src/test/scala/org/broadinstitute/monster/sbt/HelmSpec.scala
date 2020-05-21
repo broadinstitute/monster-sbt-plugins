@@ -221,7 +221,7 @@ class HelmSpec extends AnyFlatSpec with Matchers {
 
     commands.toList shouldBe List(
       "dependency" -> List("update", "/tmp"),
-      "lint" -> List("/tmp", "--values", "/example/example1-values.yaml")
+      "template" -> List("/tmp", "--values", "/example/example1-values.yaml", "--debug")
     )
   }
 }
