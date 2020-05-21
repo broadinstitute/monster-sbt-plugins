@@ -1,11 +1,12 @@
 package org.broadinstitute.monster.sbt
 
-import io.circe.{Json, yaml}
-import io.circe.yaml.syntax._
 import sbt._
 import sbt.Keys._
 import sbt.nio.Keys._
+
+import scala.collection.mutable
 import scala.sys.process._
+import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -24,58 +25,6 @@ object MonsterHelmPlugin extends AutoPlugin {
 
   import autoImport._
 
-  def packageChart(
-    chartRoot: File,
-    version: String,
-    targetDir: File,
-    injectVersionValues: (Json, String) => Json
-  ): Unit = {
-    val tmpDir = IO.createTemporaryDirectory
-    IO.copyDirectory(chartRoot, tmpDir)
-    // Wipe out the target/ directory, if it was copied over.
-    IO.delete(tmpDir / "target")
-
-    // Inject the version and appVersion so packaging does the right thing.
-    val chartMetadata = chartRoot / "Chart.yaml"
-    val parsedMetadata = yaml.parser.parse(IO.read(chartMetadata)) match {
-      case Right(parsed) => parsed
-      case Left(err)     => sys.error(s"Could not parse $chartMetadata as YAML: ${err.getMessage}")
-    }
-    val realVersion = Json.fromString(version)
-    val updatedMetadata =
-      parsedMetadata.deepMerge(Json.obj("version" -> realVersion, "appVersion" -> realVersion))
-    IO.write(tmpDir / "Chart.yaml", updatedMetadata.asYaml.spaces2)
-
-    // Inject the version into the values.yaml.
-    val chartValues = chartRoot / "values.yaml"
-    val parsedValues = if (chartValues.exists()) {
-      yaml.parser.parse(IO.read(chartValues)) match {
-        case Right(parsed) => parsed
-        case Left(err)     => sys.error(s"Could not parse $chartValues as YAML: ${err.getMessage}")
-      }
-    } else {
-      Json.obj()
-    }
-    val updatedValues = injectVersionValues(parsedValues, version)
-    IO.write(tmpDir / "values.yaml", updatedValues.asYaml.spaces2)
-
-    // Use helm to package the staged template.
-    // Assumes helm is available on the local PATH.
-    IO.delete(targetDir)
-    IO.createDirectory(targetDir)
-
-    def helm(cmd: String, args: String*): Unit = {
-      val fullCommand = "helm" :: cmd :: args.toList
-      val result = Process(fullCommand).!
-      if (result != 0) {
-        sys.error(s"`helm $cmd` failed with exit code $result")
-      }
-    }
-
-    helm("dependency", "update", tmpDir.getAbsolutePath())
-    helm("package", tmpDir.getAbsolutePath(), "--destination", targetDir.getAbsolutePath())
-  }
-
   // Assumes chart-releaser is available on the local PATH,
   // and that CR_TOKEN is in the environment.
   def cr(cmd: String, args: (String, String)*): Unit = {
@@ -88,6 +37,28 @@ object MonsterHelmPlugin extends AutoPlugin {
   }
 
   override def projectSettings: Seq[Def.Setting[_]] = Seq(
+    // Test-related settings.
+    Test / helmExampleValuesSource := baseDirectory.value / "example-values",
+    Test / test := {
+      val log = streams.value.log
+      val chart = baseDirectory.value
+      val examples = (Test / helmExampleValuesSource).value.glob("*.yaml")
+
+      val failedExamples = new mutable.ArrayBuffer[String]
+      examples.get().foreach { example =>
+        val exampleName = example.getName
+        log.info(s"Attempting to render chart with values: $exampleName")
+        try {
+          Helm.clp.lintChart(chart, example)
+        } catch {
+          case NonFatal(_) => failedExamples.append(exampleName)
+        }
+      }
+      if (failedExamples.nonEmpty) {
+        sys.error(s"Linting failed for example(s): ${failedExamples.mkString(", ")}")
+      }
+    },
+    // Publish-related settings.
     helmStagingDirectory := target.value / "helm" / "packaged",
     helmChartLocalIndex := target.value / "helm" / "index.yaml",
     helmInjectVersionValues := { (baseValues, _) => baseValues },
@@ -106,7 +77,7 @@ object MonsterHelmPlugin extends AutoPlugin {
       val packageTarget = helmStagingDirectory.value
       IO.createDirectory(packageTarget)
       if (filteredChanges.nonEmpty || packageTarget.list().isEmpty) {
-        packageChart(
+        Helm.clp.packageChart(
           baseDirectory.value,
           version.value,
           packageTarget,

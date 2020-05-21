@@ -62,6 +62,7 @@ lazy val `sbt-plugins-helm` = project
   .settings(
     commonSettings,
     libraryDependencies ++= Seq(
-      "io.circe" %% "circe-yaml" % "0.12.0"
+      "io.circe" %% "circe-yaml" % "0.12.0",
+      "org.scalatest" %% "scalatest" % "3.1.1" % Test
     )
   )
