@@ -14,6 +14,7 @@ class HelmSpec extends AnyFlatSpec with Matchers {
   val targetDir = new File("/target")
   val tmpDir = new File("/tmp")
   val version = "1.2.3-foo"
+  val valuesFile = new File("/example/example1-values.yaml")
 
   it should "package charts" in {
     // Set up mocks.
@@ -205,6 +206,22 @@ class HelmSpec extends AnyFlatSpec with Matchers {
     commands.toList shouldBe List(
       "dependency" -> List("update", "/tmp"),
       "package" -> List("/tmp", "--destination", "/target")
+    )
+  }
+
+  it should "lint charts" in {
+    val io = new HelmSpec.IO(Map.empty[File, String], tmpDir)
+    val commands = new mutable.ArrayBuffer[(String, Seq[String])]()
+    val helm = new Helm(io, (cmd, args) => commands.append(cmd -> args))
+
+    helm.lintChart(sourceDir, valuesFile)
+
+    io.dirCopies.toSet shouldBe Set(sourceDir -> tmpDir)
+    io.deletes.toSet shouldBe Set(tmpDir / "target")
+
+    commands.toList shouldBe List(
+      "dependency" -> List("update", "/tmp"),
+      "lint" -> List("/tmp", "--values", "/example/example1-values.yaml")
     )
   }
 }

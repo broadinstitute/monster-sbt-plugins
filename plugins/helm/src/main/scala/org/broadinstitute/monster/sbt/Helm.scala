@@ -6,8 +6,24 @@ import io.circe.yaml.syntax._
 import sbt._
 import scala.sys.process._
 
+/**
+  * Facade for Helm CLI operations required by the MonsterHelmPlugin.
+  *
+  * @param io helper that can interact with the local file-system
+  * @param runCommand helper that can actually run Helm commands
+  */
 class Helm(io: Helm.IO, runCommand: (String, Seq[String]) => Unit) {
 
+  /**
+    * Package a Helm chart, injecting the current version into Chart
+    * metadata and values.
+    *
+    * @param chartRoot directory containing the Helm chart
+    * @param version version to inject into metadata
+    * @param targetDir directory where the packaged chart should be stored
+    * @param injectVersionValues function which will inject a version into
+    *                            the appropriate locations in values.yaml
+    */
   def packageChart(
     chartRoot: File,
     version: String,
@@ -15,10 +31,7 @@ class Helm(io: Helm.IO, runCommand: (String, Seq[String]) => Unit) {
     injectVersionValues: (Json, String) => Json
   ): Unit = {
     // Copy the target chart into a temporary working location.
-    val tmpDir = io.createTempDirectory()
-    io.copyDirectory(chartRoot, tmpDir)
-    // Wipe out the target/ directory, if it was copied over.
-    io.deleteFile(tmpDir / "target")
+    val tmpDir = stageChart(chartRoot)
 
     // Inject the version into Chart.yaml.
     val chartMetadata = chartRoot / "Chart.yaml"
@@ -48,6 +61,33 @@ class Helm(io: Helm.IO, runCommand: (String, Seq[String]) => Unit) {
     runCommand("package", List(tmpDir.getAbsolutePath, "--destination", targetDir.getAbsolutePath))
   }
 
+  /**
+    * Lint a Helm chart using example input values.
+    *
+    * @param chartRoot directory containing the Helm chart
+    * @param inputValues file containing example values YAML for the chart
+    */
+  def lintChart(chartRoot: File, inputValues: File): Unit = {
+    // Copy the target chart into a temporary working location.
+    val tmpDir = stageChart(chartRoot)
+
+    // Download dependencies.
+    runCommand("dependency", List("update", tmpDir.getAbsolutePath))
+
+    // Lint the chart using the example inputs.
+    runCommand("lint", List(tmpDir.getAbsolutePath, "--values", inputValues.getAbsolutePath))
+  }
+
+  /** Stage a Helm chart in a temporary directory, removing sbt clutter. */
+  private def stageChart(chartRoot: File): File = {
+    val tmpDir = io.createTempDirectory()
+    io.copyDirectory(chartRoot, tmpDir)
+    // Wipe out the target/ directory, if it was copied over.
+    io.deleteFile(tmpDir / "target")
+    tmpDir
+  }
+
+  /** Construct the Chart metadata representation of a build version. */
   private def chartVersions(version: String): Json = {
     val jsonVersion = Json.fromString(version)
     Json.obj("version" -> jsonVersion, "appVersion" -> jsonVersion)

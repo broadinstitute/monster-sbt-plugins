@@ -25,6 +25,10 @@ trait MonsterHelmPluginKeys {
     "Pre-packaging hook allowing the current version to be written into values.yaml"
   )
 
+  val helmExampleValuesSource: SettingKey[File] = settingKey(
+    "Directory containing example values YAML files, for linting"
+  )
+
   val packageHelmChart: TaskKey[File] = taskKey("Package the project's Helm chart")
 
   val releaseHelmChart: TaskKey[Unit] = taskKey("Upload the project's Helm chart to GitHub")

@@ -34,6 +34,14 @@ object MonsterHelmPlugin extends AutoPlugin {
   }
 
   override def projectSettings: Seq[Def.Setting[_]] = Seq(
+    // Test-related settings.
+    Test / helmExampleValuesSource := (Test / sourceDirectory).value / "helm-values",
+    Test / test := {
+      val chart = baseDirectory.value
+      val examples = (Test / helmExampleValuesSource).value.glob("*.yaml")
+      examples.get().foreach(Helm.clp.lintChart(chart, _))
+    },
+    // Publish-related settings.
     helmStagingDirectory := target.value / "helm" / "packaged",
     helmChartLocalIndex := target.value / "helm" / "index.yaml",
     helmInjectVersionValues := { (baseValues, _) => baseValues },
