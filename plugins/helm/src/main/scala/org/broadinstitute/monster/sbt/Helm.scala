@@ -70,6 +70,7 @@ class Helm(io: Helm.IO, runCommand: (String, Seq[String]) => Unit) {
   def lintChart(chartRoot: File, inputValues: File): Unit = {
     // Copy the target chart into a temporary working location.
     val tmpDir = stageChart(chartRoot)
+    val tmpOut = io.createTempDirectory()
 
     // Download dependencies.
     runCommand("dependency", List("update", tmpDir.getAbsolutePath))
@@ -77,7 +78,17 @@ class Helm(io: Helm.IO, runCommand: (String, Seq[String]) => Unit) {
     // Attempt to render the chart using the example inputs.
     runCommand(
       "template",
-      List(tmpDir.getAbsolutePath, "--values", inputValues.getAbsolutePath, "--debug")
+      List(
+        tmpDir.getAbsolutePath,
+        "--values",
+        inputValues.getAbsolutePath,
+        // Debug causes invalid YAML to get printed on failure.
+        "--debug",
+        // If the YAML renders successfully, no point in printing it to the screen.
+        // Dump the rendered templates to a dir in the temp space.
+        "--output-dir",
+        tmpOut.getAbsolutePath
+      )
     )
   }
 
