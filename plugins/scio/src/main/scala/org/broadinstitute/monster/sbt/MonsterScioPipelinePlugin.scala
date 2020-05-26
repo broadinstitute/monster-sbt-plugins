@@ -23,6 +23,10 @@ object MonsterScioPipelinePlugin extends AutoPlugin {
     ),
     // Disable scio's annoying automatic version check.
     javaOptions += "-Dscio.ignoreVersionWarning=true",
-    UniversalPlugin.autoImport.Universal / javaOptions += "-Dscio.ignoreVersionWarning=true"
+    UniversalPlugin.autoImport.Universal / javaOptions += "-Dscio.ignoreVersionWarning=true",
+    // FIXME: Kludge in a fix for a transitive dependency error in Scio 0.9.0.
+    // See https://github.com/spotify/scio/issues/2945
+    // This should go away when we pull in a scio-utils version w/ a fixed Scio dependency.
+    dependencyOverrides += "com.google.guava" % "guava" % "27.0.1-jre"
   )
 }
