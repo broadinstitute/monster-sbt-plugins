@@ -153,7 +153,8 @@ object MonsterBasePlugin extends AutoPlugin {
         buildInfoPackage := (ThisBuild / organization).value + ".buildinfo",
         buildInfoObject := name.value.split('-').map(_.capitalize).mkString + "BuildInfo",
         // Exclude build-info objects from test coverage.
-        coverageExcludedPackages += buildInfoPackage.value
+        // NOTE: This is a regex, so we have to escape all the dots.
+        coverageExcludedPackages := buildInfoPackage.value.replaceAllLiterally(".", "\\.") + ".*"
       )
     )
 }
