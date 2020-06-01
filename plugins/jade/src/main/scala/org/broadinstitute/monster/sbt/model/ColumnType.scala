@@ -66,10 +66,10 @@ object ColumnType extends Enum[ColumnType] with CirceEnum[ColumnType] {
   case object Repeated extends ColumnType {
 
     override def modify(scalaType: String): String =
-      s"_root_.scala.Array[$scalaType]"
+      s"_root_.scala.collection.immutable.List[$scalaType]"
 
     override def getDefaultValue(scalaType: String): Option[String] =
-      Some(s"_root_.scala.Array.empty[$scalaType]")
+      Some(s"_root_.scala.collection.immutable.List.empty[$scalaType]")
 
     override val asBigQuery: String = "REPEATED"
     override val isRequired: Boolean = false
