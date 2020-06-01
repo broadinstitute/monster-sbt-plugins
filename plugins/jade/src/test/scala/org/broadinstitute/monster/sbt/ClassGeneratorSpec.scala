@@ -281,7 +281,7 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
     s"""package $testPackage
        |
        |case class ArrayColumn(
-       |testArray: _root_.scala.Array[_root_.scala.Double])
+       |testArray: _root_.scala.collection.immutable.List[_root_.scala.Double])
        |
        |object ArrayColumn {
        |  implicit val encoder: _root_.io.circe.Encoder[ArrayColumn] =
@@ -292,7 +292,7 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |
        |  def init(): ArrayColumn = {
        |    ArrayColumn(
-       |      testArray = _root_.scala.Array.empty[_root_.scala.Double])
+       |      testArray = _root_.scala.collection.immutable.List.empty[_root_.scala.Double])
        |  }
        |}
        |""".stripMargin
@@ -328,7 +328,7 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |case class AllModifiers(
        |keyColumn: _root_.java.time.LocalDate,
        |normalColumn: _root_.scala.Option[_root_.scala.Boolean],
-       |arrayColumn: _root_.scala.Array[_root_.scala.Long],
+       |arrayColumn: _root_.scala.collection.immutable.List[_root_.scala.Long],
        |requiredColumn: _root_.scala.Double)
        |
        |object AllModifiers {
@@ -344,7 +344,7 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |    AllModifiers(
        |      keyColumn = keyColumn,
        |      normalColumn = _root_.scala.Option.empty[_root_.scala.Boolean],
-       |      arrayColumn = _root_.scala.Array.empty[_root_.scala.Long],
+       |      arrayColumn = _root_.scala.collection.immutable.List.empty[_root_.scala.Long],
        |      requiredColumn = requiredColumn)
        |  }
        |}
@@ -357,7 +357,7 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
     """case class AllModifiers(
        keyColumn: _root_.java.time.LocalDate,
        normalColumn: _root_.scala.Option[_root_.scala.Boolean],
-       arrayColumn: _root_.scala.Array[_root_.scala.Long])
+       arrayColumn: _root_.scala.collection.immutable.List[_root_.scala.Long])
        """ should compile
   }
 
@@ -476,7 +476,7 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
     s"""package $testPackage
        |
        |case class RepeatedStruct(
-       |repeatedComment: _root_.scala.Array[_root_.$structPackage.Comment123])
+       |repeatedComment: _root_.scala.collection.immutable.List[_root_.$structPackage.Comment123])
        |
        |object RepeatedStruct {
        |  implicit val encoder: _root_.io.circe.Encoder[RepeatedStruct] =
@@ -487,7 +487,7 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |
        |  def init(): RepeatedStruct = {
        |    RepeatedStruct(
-       |      repeatedComment = _root_.scala.Array.empty[_root_.$structPackage.Comment123])
+       |      repeatedComment = _root_.scala.collection.immutable.List.empty[_root_.$structPackage.Comment123])
        |  }
        |}
        |""".stripMargin
@@ -686,7 +686,7 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
     s"""package $structPackage
        |
        |case class ArrayField(
-       |testArray: _root_.scala.Array[_root_.scala.Double])
+       |testArray: _root_.scala.collection.immutable.List[_root_.scala.Double])
        |
        |object ArrayField {
        |  implicit val encoder: _root_.io.circe.Encoder[ArrayField] =
@@ -730,7 +730,7 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |case class AllModifiers(
        |keyField: _root_.java.time.LocalDate,
        |normalField: _root_.scala.Option[_root_.scala.Boolean],
-       |arrayField: _root_.scala.Array[_root_.scala.Long],
+       |arrayField: _root_.scala.collection.immutable.List[_root_.scala.Long],
        |requiredField: _root_.scala.Double)
        |
        |object AllModifiers {
@@ -748,7 +748,7 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
     """case class AllModifiers(
        keyField: _root_.java.time.LocalDate,
        normalField: _root_.scala.Option[_root_.scala.Boolean],
-       arrayField: _root_.scala.Array[_root_.scala.Long])
+       arrayField: _root_.scala.collection.immutable.List[_root_.scala.Long])
 
        object AllModifiers {
          implicit val encoder: _root_.io.circe.Encoder[AllModifiers] =
