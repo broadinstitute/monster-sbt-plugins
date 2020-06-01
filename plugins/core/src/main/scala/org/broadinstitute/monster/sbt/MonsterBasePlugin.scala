@@ -21,6 +21,7 @@ object MonsterBasePlugin extends AutoPlugin {
   import BuildInfoPlugin.autoImport._
   import DynVerPlugin.autoImport._
   import ScalafmtPlugin.autoImport._
+  import ScoverageSbtPlugin.autoImport._
 
   // Automatically apply our base settings to every project.
   override def requires: Plugins =
@@ -149,9 +150,10 @@ object MonsterBasePlugin extends AutoPlugin {
         IntegrationTest / fork := true,
         // De-duplicate BuildInfo objects so our projects can depend on one another
         // without conflicts.
-        buildInfoPackage := (ThisBuild / organization).value,
+        buildInfoPackage := (ThisBuild / organization).value + ".buildinfo",
         buildInfoObject := name.value.split('-').map(_.capitalize).mkString + "BuildInfo",
-        buildInfoOptions += BuildInfoOption.BuildTime
+        // Exclude build-info objects from test coverage.
+        coverageExcludedPackages += buildInfoPackage.value
       )
     )
 }
