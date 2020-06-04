@@ -105,7 +105,10 @@ object ClassGenerator {
       val name = snakeToCamel(baseTable.name, titleCase = true)
       val simpleFields = baseTable.columns.map(fieldForColumn)
       val structFields = baseTable.structColumns.map(fieldForStruct(structPackage, _))
-      val classParams = (simpleFields ++ structFields).map(f => s"\n$f").mkString(",")
+      val composedFields = baseTable.composeTables.map(fieldForComposedTable(tablePackage, _))
+      val classParams = (simpleFields ++ structFields ++ composedFields)
+        .map(f => s"\n$f")
+        .mkString(",")
 
       // Get the parameters for the init method definition
       val requiredColumnParams = baseTable.columns.filter(_.`type`.isRequired).map(fieldForColumn)
@@ -113,31 +116,66 @@ object ClassGenerator {
         .filter(_.`type`.isRequired)
         .map(fieldForStruct(structPackage, _))
       val requiredParams = (requiredColumnParams ++ requiredStructParams)
-        .map("\n    ".concat(_))
+        .map(f => s"\n    $f")
         .mkString(",")
 
       // Get the values that should be used to initialize the object
       val simpleInitFields = baseTable.columns.map(initValueForColumn)
       val structInitFields = baseTable.structColumns.map(initValueForStruct(structPackage, _))
-      val initClassParams =
-        (simpleInitFields ++ structInitFields).map(f => s"\n      $f").mkString(",")
+      val composedInitFields =
+        baseTable.composeTables.map(initValueForComposedTable(tablePackage, _))
+      val initClassParams = (simpleInitFields ++ structInitFields ++ composedInitFields)
+        .map(f => s"\n      $f")
+        .mkString(",")
 
-      s"""package $tablePackage
-         |
-         |case class $name($classParams)
-         |
-         |object $name {
-         |  implicit val encoder: _root_.io.circe.Encoder[$name] =
-         |    _root_.io.circe.derivation.deriveEncoder(
-         |      _root_.io.circe.derivation.renaming.snakeCase,
-         |      _root_.scala.None
-         |    )
-         |
-         |  def init($requiredParams): $name = {
-         |    $name($initClassParams)
-         |  }
-         |}
-         |""".stripMargin
+      if (baseTable.composeTables.isEmpty) {
+        s"""package $tablePackage
+           |
+           |case class $name($classParams)
+           |
+           |object $name {
+           |  implicit val encoder: _root_.io.circe.Encoder[$name] =
+           |    _root_.io.circe.derivation.deriveEncoder(
+           |      _root_.io.circe.derivation.renaming.snakeCase,
+           |      _root_.scala.None
+           |    )
+           |
+           |  def init($requiredParams): $name = {
+           |    $name($initClassParams)
+           |  }
+           |}
+           |""".stripMargin
+      } else {
+        val composedKeySet = "composedKeys"
+        val composedKeys = baseTable.composeTables.map(_.id).map(k => s""""$k"""")
+
+        s"""package $tablePackage
+           |
+           |case class $name($classParams)
+           |
+           |object $name {
+           |  val $composedKeySet: _root_.scala.collection.immutable.Set[_root_.java.lang.String] =
+           |    _root_.scala.collection.immutable.Set(${composedKeys.mkString(", ")})
+           |
+           |  implicit val encoder: _root_.io.circe.Encoder[$name] =
+           |    _root_.io.circe.derivation.deriveEncoder(
+           |      _root_.io.circe.derivation.renaming.snakeCase,
+           |      _root_.scala.None
+           |    ).mapJsonObject { obj =>
+           |      val composed = obj.filterKeys($composedKeySet.contains(_))
+           |      val notComposed = obj.filterKeys(!$composedKeySet.contains(_))
+           |
+           |      composed.toIterable.foldLeft(notComposed) {
+           |        case (acc, (_, subTable)) => acc.deepMerge(subTable)
+           |      }
+           |    }
+           |
+           |  def init($requiredParams): $name = {
+           |    $name($initClassParams)
+           |  }
+           |}
+           |""".stripMargin
+      }
     }
 
   /**
@@ -213,6 +251,23 @@ object ClassGenerator {
     val structType = getStructType(structPackage, structColumn)
     val modifiedType = structColumn.`type`.modify(structType)
     s"${getFieldName(structColumn.name)}: $modifiedType"
+  }
+
+  private def composedTableType(tablePackage: String, tableName: JadeIdentifier): String =
+    s"_root_.$tablePackage.${snakeToCamel(tableName, titleCase = true)}"
+
+  /** Get the Scala field declaration for a composed Jade table. */
+  private def fieldForComposedTable(tablePackage: String, tableName: JadeIdentifier): String = {
+    val tableType = composedTableType(tablePackage, tableName)
+    val modifiedType = ColumnType.Optional.modify(tableType)
+    s"${getFieldName(tableName)}: $modifiedType"
+  }
+
+  /** Get a parameter definition for a composed Jade table. */
+  private def initValueForComposedTable(tablePackage: String, tableName: JadeIdentifier): String = {
+    val tableType = composedTableType(tablePackage, tableName)
+    val defaultValue = ColumnType.Optional.getDefaultValue(tableType).get
+    s"${getFieldName(tableName)} = $defaultValue"
   }
 
   /**

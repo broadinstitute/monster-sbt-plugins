@@ -493,6 +493,54 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |""".stripMargin
   )
 
+  it should behave like checkTableGeneration(
+    "generate composite table references",
+    s"""{
+       |  "name": "composed_table",
+       |  "columns": [
+       |    {
+       |      "name": "id",
+       |      "datatype": "integer",
+       |      "type": "primary_key"
+       |    }
+       |  ],
+       |  "compose_tables": ["other_table", "third_table"]
+       |}""".stripMargin,
+    s"""package $testPackage
+       |
+       |case class ComposedTable(
+       |id: _root_.scala.Long,
+       |otherTable: _root_.scala.Option[_root_.$testPackage.OtherTable],
+       |thirdTable: _root_.scala.Option[_root_.$testPackage.ThirdTable])
+       |
+       |object ComposedTable {
+       |  val composedKeys: _root_.scala.collection.immutable.Set[_root_.java.lang.String] =
+       |    _root_.scala.collection.immutable.Set("other_table", "third_table")
+       |
+       |  implicit val encoder: _root_.io.circe.Encoder[ComposedTable] =
+       |    _root_.io.circe.derivation.deriveEncoder(
+       |      _root_.io.circe.derivation.renaming.snakeCase,
+       |      _root_.scala.None
+       |    ).mapJsonObject { obj =>
+       |      val composed = obj.filterKeys(composedKeys.contains(_))
+       |      val notComposed = obj.filterKeys(!composedKeys.contains(_))
+       |
+       |      composed.toIterable.foldLeft(notComposed) {
+       |        case (acc, (_, subTable)) => acc.deepMerge(subTable)
+       |      }
+       |    }
+       |
+       |  def init(
+       |    id: _root_.scala.Long): ComposedTable = {
+       |    ComposedTable(
+       |      id = id,
+       |      otherTable = _root_.scala.Option.empty[_root_.$testPackage.OtherTable],
+       |      thirdTable = _root_.scala.Option.empty[_root_.$testPackage.ThirdTable])
+       |  }
+       |}
+       |""".stripMargin
+  )
+
   // Sad table cases
   it should behave like checkFailedTableGeneration(
     "catch invalid table payloads",
