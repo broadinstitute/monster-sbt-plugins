@@ -566,39 +566,24 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |      "datatype": "integer",
        |      "type": "primary_key"
        |    }
-       |  ],
-       |  "table_fragments": ["other_fragment", "third_fragment"]
+       |  ]
        |}""".stripMargin,
     s"""package $fragmentPackage
        |
        |case class FragmentClass(
-       |id: _root_.scala.Long,
-       |otherFragment: _root_.scala.Option[_root_.$fragmentPackage.OtherFragment],
-       |thirdFragment: _root_.scala.Option[_root_.$fragmentPackage.ThirdFragment])
+       |id: _root_.scala.Long)
        |
        |object FragmentClass {
-       |  val composedKeys: _root_.scala.collection.immutable.Set[_root_.java.lang.String] =
-       |    _root_.scala.collection.immutable.Set("other_fragment", "third_fragment")
-       |
        |  implicit val encoder: _root_.io.circe.Encoder[FragmentClass] =
        |    _root_.io.circe.derivation.deriveEncoder(
        |      _root_.io.circe.derivation.renaming.snakeCase,
        |      _root_.scala.None
-       |    ).mapJsonObject { obj =>
-       |      val composed = obj.filterKeys(composedKeys.contains(_))
-       |      val notComposed = obj.filterKeys(!composedKeys.contains(_))
-       |
-       |      composed.toIterable.foldLeft(notComposed) {
-       |        case (acc, (_, subTable)) => acc.deepMerge(subTable)
-       |      }
-       |    }
+       |    )
        |
        |  def init(
        |    id: _root_.scala.Long): FragmentClass = {
        |    FragmentClass(
-       |      id = id,
-       |      otherFragment = _root_.scala.Option.empty[_root_.$fragmentPackage.OtherFragment],
-       |      thirdFragment = _root_.scala.Option.empty[_root_.$fragmentPackage.ThirdFragment])
+       |      id = id)
        |  }
        |}
        |""".stripMargin
