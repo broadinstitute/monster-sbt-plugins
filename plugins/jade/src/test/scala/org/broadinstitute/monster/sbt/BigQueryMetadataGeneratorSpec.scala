@@ -57,7 +57,7 @@ class BigQueryMetadataGeneratorSpec extends AnyFlatSpec with Matchers {
   behavior of "BigQueryMetadataGenerator"
 
   it should "translate table definitions to BQ schemas" in {
-    BigQueryMetadataGenerator.tableSchema(exampleTable) should contain allOf (
+    BigQueryMetadataGenerator.tableSchema(exampleTable, Nil) should contain allOf (
       BigQueryColumn("sample_id", "STRING", "REQUIRED"),
       BigQueryColumn("file_type", "STRING", "REQUIRED"),
       BigQueryColumn("data_type", "STRING", "REQUIRED"),
@@ -69,12 +69,67 @@ class BigQueryMetadataGeneratorSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "extract primary-key column names from table definitions" in {
-    BigQueryMetadataGenerator.primaryKeyColumns(exampleTable) should
+    BigQueryMetadataGenerator.primaryKeyColumns(exampleTable, Nil) should
       contain allOf ("sample_id", "file_type")
   }
 
   it should "extract non-primary-key column names from table definitions" in {
-    BigQueryMetadataGenerator.nonPrimaryKeyColumns(exampleTable) should
+    BigQueryMetadataGenerator.nonPrimaryKeyColumns(exampleTable, Nil) should
       contain allOf ("data_type", "creation_date", "size", "metrics", "comments")
+  }
+
+  val fragment = MonsterTableFragment(
+    name = new JadeIdentifier("f"),
+    columns = Vector(
+      SimpleColumn(
+        name = new JadeIdentifier("x"),
+        datatype = DataType.Timestamp,
+        `type` = ColumnType.PrimaryKey
+      )
+    ),
+    structColumns = Vector(
+      StructColumn(
+        name = new JadeIdentifier("y"),
+        structName = new JadeIdentifier("s"),
+        `type` = ColumnType.Repeated
+      )
+    )
+  )
+
+  val fragmentTable = new MonsterTable(
+    name = new JadeIdentifier("t"),
+    tableFragments = Vector(fragment.name),
+    columns = Vector(
+      SimpleColumn(
+        name = new JadeIdentifier("z"),
+        datatype = DataType.Integer,
+        `type` = ColumnType.PrimaryKey
+      )
+    ),
+    structColumns = Vector(
+      StructColumn(
+        name = new JadeIdentifier("w"),
+        structName = new JadeIdentifier("q")
+      )
+    )
+  )
+
+  it should "flatten table fragments when building BQ schemas" in {
+    BigQueryMetadataGenerator.tableSchema(fragmentTable, List(fragment)) should contain allOf (
+      BigQueryColumn("x", "TIMESTAMP", "REQUIRED"),
+      BigQueryColumn("y", "STRING", "REPEATED"),
+      BigQueryColumn("z", "INT64", "REQUIRED"),
+      BigQueryColumn("w", "STRING", "NULLABLE")
+    )
+  }
+
+  it should "include fragment PKs when extracting names" in {
+    BigQueryMetadataGenerator.primaryKeyColumns(fragmentTable, List(fragment)) should
+      contain allOf ("x", "z")
+  }
+
+  it should "include fragment non-PK columns when extracting names" in {
+    BigQueryMetadataGenerator.nonPrimaryKeyColumns(fragmentTable, List(fragment)) should
+      contain allOf ("y", "w")
   }
 }

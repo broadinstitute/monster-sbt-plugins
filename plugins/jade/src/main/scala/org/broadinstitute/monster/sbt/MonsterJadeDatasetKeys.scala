@@ -6,18 +6,33 @@ import sbt._
 trait MonsterJadeDatasetKeys {
 
   val jadeTableSource: SettingKey[File] =
-    settingKey("Directory containing table definitions for a Jade dataset")
+    settingKey("Directory containing table-fragment definitions for a Jade dataset")
 
   val jadeTableExtension: SettingKey[String] =
-    settingKey("Extension for files containing Jade table definitions")
+    settingKey("Extension for files containing Jade table-fragment definitions")
 
   val jadeTablePackage: SettingKey[String] =
-    settingKey("Package which should be used for generated table classes")
+    settingKey("Package which should be used for generated table-fragment classes")
 
   val jadeTableTarget: SettingKey[File] =
-    settingKey("Directory where generated table classes should be written")
+    settingKey("Directory where generated table-fragment classes should be written")
 
   val generateJadeTables: TaskKey[Seq[File]] =
+    taskKey("Generate case classes for table-fragment definitions in this project")
+
+  val jadeTableFragmentSource: SettingKey[File] =
+    settingKey("Directory containing table definitions for a Jade dataset")
+
+  val jadeTableFragmentExtension: SettingKey[String] =
+    settingKey("Extension for files containing Jade table definitions")
+
+  val jadeTableFragmentPackage: SettingKey[String] =
+    settingKey("Package which should be used for generated table classes")
+
+  val jadeTableFragmentTarget: SettingKey[File] =
+    settingKey("Directory where generated table classes should be written")
+
+  val generateJadeTableFragments: TaskKey[Seq[File]] =
     taskKey("Generate case classes for table definitions in this project")
 
   val jadeStructSource: SettingKey[File] =

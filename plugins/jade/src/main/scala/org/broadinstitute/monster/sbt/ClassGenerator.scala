@@ -2,6 +2,7 @@ package org.broadinstitute.monster.sbt
 
 import java.nio.file.{Files, Path}
 
+import io.circe.Decoder
 import io.circe.jawn.JawnParser
 import org.broadinstitute.monster.sbt.model._
 import sbt._
@@ -90,22 +91,25 @@ object ClassGenerator {
   /**
     * Generate a Scala case class corresponding to a Jade table.
     *
-    * @param tablePackage package which should contain the class
+    * @param targetPackage package which should contain the class
+    * @param fragmentPackage package where any fragments referenced by the table
+    *                        should be located
     * @param structPackage package where any structs referenced by the table
     *                      should be located
     * @param tableContent JSON content of the Jade table file
     */
-  def generateTableClass(
-    tablePackage: String,
+  def generateTableClass[T <: ClassSpec: Decoder](
+    targetPackage: String,
+    fragmentPackage: String,
     structPackage: String,
     tableContent: String
   ): Either[Throwable, String] =
-    parser.decode[MonsterTable](tableContent).map { baseTable =>
+    parser.decode[T](tableContent).map { baseTable =>
       // Get the parameters for the class definition
       val name = snakeToCamel(baseTable.name, titleCase = true)
       val simpleFields = baseTable.columns.map(fieldForColumn)
       val structFields = baseTable.structColumns.map(fieldForStruct(structPackage, _))
-      val composedFields = baseTable.composeTables.map(fieldForComposedTable(tablePackage, _))
+      val composedFields = baseTable.tableFragments.map(fieldForComposedTable(fragmentPackage, _))
       val classParams = (simpleFields ++ structFields ++ composedFields)
         .map(f => s"\n$f")
         .mkString(",")
@@ -123,13 +127,13 @@ object ClassGenerator {
       val simpleInitFields = baseTable.columns.map(initValueForColumn)
       val structInitFields = baseTable.structColumns.map(initValueForStruct(structPackage, _))
       val composedInitFields =
-        baseTable.composeTables.map(initValueForComposedTable(tablePackage, _))
+        baseTable.tableFragments.map(initValueForComposedTable(fragmentPackage, _))
       val initClassParams = (simpleInitFields ++ structInitFields ++ composedInitFields)
         .map(f => s"\n      $f")
         .mkString(",")
 
-      if (baseTable.composeTables.isEmpty) {
-        s"""package $tablePackage
+      if (baseTable.tableFragments.isEmpty) {
+        s"""package $targetPackage
            |
            |case class $name($classParams)
            |
@@ -147,9 +151,9 @@ object ClassGenerator {
            |""".stripMargin
       } else {
         val composedKeySet = "composedKeys"
-        val composedKeys = baseTable.composeTables.map(_.id).map(k => s""""$k"""")
+        val composedKeys = baseTable.tableFragments.map(_.id).map(k => s""""$k"""")
 
-        s"""package $tablePackage
+        s"""package $targetPackage
            |
            |case class $name($classParams)
            |

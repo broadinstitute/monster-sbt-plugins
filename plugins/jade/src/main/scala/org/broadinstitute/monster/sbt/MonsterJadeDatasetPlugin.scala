@@ -2,6 +2,7 @@ package org.broadinstitute.monster.sbt
 
 import com.typesafe.sbt.packager.MappingsHelper
 import com.typesafe.sbt.packager.linux.LinuxKeys
+import org.broadinstitute.monster.sbt.model.{MonsterTable, MonsterTableFragment}
 import sbt._
 import sbt.Keys._
 import sbt.nio.Keys._
@@ -31,19 +32,28 @@ object MonsterJadeDatasetPlugin extends AutoPlugin with LinuxKeys {
     jadeTableSource := sourceDirectory.value / "main" / "jade-tables",
     jadeTableExtension := "table.json",
     jadeTableTarget := (Compile / sourceManaged).value / "jade-schema" / "tables",
+    jadeTableFragmentSource := sourceDirectory.value / "main" / "jade-fragments",
+    jadeTableFragmentExtension := "fragment.json",
+    jadeTableFragmentTarget := (Compile / sourceManaged).value / "jade-schema" / "fragments",
     jadeStructSource := sourceDirectory.value / "main" / "jade-structs",
     jadeStructExtension := "struct.json",
     jadeStructTarget := (Compile / sourceManaged).value / "jade-schema" / "structs",
     Compile / managedSourceDirectories ++= Seq(
       jadeTableTarget.value,
+      jadeTableFragmentTarget.value,
       jadeStructTarget.value
     ),
     Compile / sourceGenerators ++= Seq(
       generateJadeTables.taskValue,
+      generateJadeTableFragments.taskValue,
       generateJadeStructs.taskValue
     ),
-    generateJadeTables / fileInputs += jadeTableSource.value.toGlob / s"*.${jadeTableExtension.value}",
-    generateJadeStructs / fileInputs += jadeStructSource.value.toGlob / s"*.${jadeStructExtension.value}",
+    generateJadeTables / fileInputs +=
+      jadeTableSource.value.toGlob / s"*.${jadeTableExtension.value}",
+    generateJadeTableFragments / fileInputs +=
+      jadeTableFragmentSource.value.toGlob / s"*.${jadeTableFragmentExtension.value}",
+    generateJadeStructs / fileInputs +=
+      jadeStructSource.value.toGlob / s"*.${jadeStructExtension.value}",
     generateJadeTables := ClassGenerator.generateClasses(
       inputFiles = generateJadeTables.inputFiles,
       inputChanges = generateJadeTables.inputFileChanges,
@@ -51,7 +61,27 @@ object MonsterJadeDatasetPlugin extends AutoPlugin with LinuxKeys {
       outputDir = jadeTableTarget.value.toPath,
       fileView = fileTreeView.value,
       logger = streams.value.log,
-      gen = ClassGenerator.generateTableClass(jadeTablePackage.value, jadeStructPackage.value, _)
+      gen = ClassGenerator.generateTableClass[MonsterTable](
+        jadeTablePackage.value,
+        jadeTableFragmentPackage.value,
+        jadeStructPackage.value,
+        _
+      )
+    ),
+    generateJadeTableFragments := ClassGenerator.generateClasses(
+      inputFiles = generateJadeTableFragments.inputFiles,
+      inputChanges = generateJadeTableFragments.inputFileChanges,
+      inputExtension = jadeTableFragmentExtension.value,
+      outputDir = jadeTableFragmentTarget.value.toPath,
+      fileView = fileTreeView.value,
+      logger = streams.value.log,
+      gen = ClassGenerator.generateTableClass[MonsterTableFragment](
+        // Not a typo, fragments get generated within the fragment package.
+        jadeTableFragmentPackage.value,
+        jadeTableFragmentPackage.value,
+        jadeStructPackage.value,
+        _
+      )
     ),
     generateJadeStructs := ClassGenerator.generateClasses(
       inputFiles = generateJadeStructs.inputFiles,
@@ -65,6 +95,8 @@ object MonsterJadeDatasetPlugin extends AutoPlugin with LinuxKeys {
     generateJadeSchema := JadeSchemaGenerator.generateSchema(
       inputDir = jadeTableSource.value,
       inputExtension = jadeTableExtension.value,
+      fragmentDir = jadeTableFragmentSource.value,
+      fragmentExtension = jadeTableFragmentExtension.value,
       outputDir = target.value,
       fileView = fileTreeView.value,
       logger = streams.value.log
@@ -93,6 +125,8 @@ object MonsterJadeDatasetPlugin extends AutoPlugin with LinuxKeys {
     generateBigQueryMetadata := BigQueryMetadataGenerator.generateMetadata(
       inputDir = jadeTableSource.value,
       inputExtension = jadeTableExtension.value,
+      fragmentDir = jadeTableFragmentSource.value,
+      fragmentExtension = jadeTableFragmentExtension.value,
       outputDir = bigQueryMetadataTarget.value,
       fileView = fileTreeView.value,
       logger = streams.value.log
