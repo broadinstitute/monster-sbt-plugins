@@ -3,7 +3,12 @@ package org.broadinstitute.monster.sbt
 import java.nio.file.Path
 
 import io.circe.jawn.JawnParser
-import org.broadinstitute.monster.sbt.model.{MonsterTable, MonsterTableFragment}
+import org.broadinstitute.monster.sbt.model.{
+  JadeIdentifier,
+  Link,
+  MonsterTable,
+  MonsterTableFragment
+}
 import sbt._
 import sbt.internal.util.ManagedLogger
 import sbt.nio.file.{FileAttributes, FileTreeView}
@@ -63,46 +68,62 @@ object MonsterSchemaValidator {
     fragments: Seq[MonsterTableFragment]
   ): Either[Seq[String], Unit] = {
     val fragmentMap = fragments.map(f => f.name -> f).toMap
-    val columnsByTable = tables.map(t => t.name -> t.columns.map(_.name).toSet).toMap
 
-    val errs = tables.foldLeft(List.empty[String]) { (errAcc, table) =>
-      val tableId = table.name
+    val (tableErrs, colsByTable) =
+      tables.foldLeft((List.empty[String], Map.empty[JadeIdentifier, Set[JadeIdentifier]])) {
+        case ((errAcc, colAcc), table) =>
+          val tableId = table.name
 
-      val (idErrs, linkedFragments) = table.tableFragments.map { fragmentId =>
-        fragmentMap.get(fragmentId) match {
-          case Some(fragment) => (None, Some(fragment))
-          case None           => (Some(s"Table $tableId references nonexistent fragment $fragmentId"), None)
-        }
-      }.unzip
+          val (idErrs, linkedFragments) = table.tableFragments.map { fragmentId =>
+            fragmentMap.get(fragmentId) match {
+              case Some(fragment) => (None, Some(fragment))
+              case None =>
+                (Some(s"Table '$tableId' references nonexistent fragment '$fragmentId'"), None)
+            }
+          }.unzip
 
-      val tableCols = table.columns.map(_.name) ++ table.structColumns.map(_.name)
-      val fragmentCols =
-        linkedFragments.flatten.flatMap(f => f.columns.map(_.name) ++ f.structColumns.map(_.name))
+          val tableCols = table.columns.map(_.name) ++ table.structColumns.map(_.name)
+          val fragmentCols =
+            linkedFragments.flatten.flatMap(f =>
+              f.columns.map(_.name) ++ f.structColumns.map(_.name)
+            )
 
-      val collisionErrs = tableCols.intersect(fragmentCols).map { collidingName =>
-        s"Collision on column name $collidingName in table $tableId"
+          val collisionErrs = tableCols.intersect(fragmentCols).map { collidingName =>
+            s"Collision on column name '$collidingName' in table '$tableId'"
+          }
+
+          val newErrs = collisionErrs.toList ::: idErrs.flatten.toList ::: errAcc
+          val flattenedCols = (tableCols ++ fragmentCols).toSet
+
+          (newErrs, colAcc + (table.name -> flattenedCols))
       }
 
-      val allLinks = table.columns.flatMap(_.links) ++
-        linkedFragments.flatten.flatMap(_.columns.flatMap(_.links))
+    val linkErrs = tables.foldLeft(List.empty[String]) { (acc, table) =>
+      val tableId = table.name
 
-      val linkErrs = allLinks.flatMap { link =>
-        columnsByTable.get(link.tableName) match {
-          case None => Some(s"Link to invalid table ${link.tableName} in table $tableId")
+      val allLinks = table.columns.flatMap(_.links) ++
+        table.tableFragments.foldLeft(List.empty[Link]) { (acc, fragmentId) =>
+          fragmentMap
+            .get(fragmentId)
+            .fold(List.empty[Link])(_.columns.flatMap(_.links).toList) ::: acc
+        }
+
+      allLinks.flatMap { link =>
+        colsByTable.get(link.tableName) match {
+          case None => Some(s"Link to invalid table '${link.tableName}' in table '$tableId'")
           case Some(cols) =>
             if (cols.contains(link.columnName)) {
               None
             } else {
               Some(
-                s"Link to invalid table/column ${link.tableName}/${link.columnName} in table $tableId"
+                s"Link to invalid table/column '${link.tableName}/${link.columnName}' in table '$tableId'"
               )
             }
         }
-      }
-
-      linkErrs.toList ::: collisionErrs.toList ::: idErrs.flatten.toList ::: errAcc
+      }.toList ::: acc
     }
 
-    if (errs.isEmpty) Right(()) else Left(errs)
+    val allErrs = tableErrs ::: linkErrs
+    if (allErrs.isEmpty) Right(()) else Left(allErrs)
   }
 }
