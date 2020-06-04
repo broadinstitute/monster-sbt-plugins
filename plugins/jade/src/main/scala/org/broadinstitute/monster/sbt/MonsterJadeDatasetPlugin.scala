@@ -101,6 +101,15 @@ object MonsterJadeDatasetPlugin extends AutoPlugin with LinuxKeys {
       fileView = fileTreeView.value,
       logger = streams.value.log
     ),
+    // Validate our JSON files on 'test'.
+    Test / test := MonsterSchemaValidator.validateSchema(
+      inputDir = jadeTableSource.value,
+      inputExtension = jadeTableExtension.value,
+      fragmentDir = jadeTableFragmentSource.value,
+      fragmentExtension = jadeTableFragmentExtension.value,
+      fileView = fileTreeView.value,
+      logger = streams.value.log
+    ),
     // Coverage of generated sources can break codedov.io, since it can't match the data to a source file.
     // NOTE: The types here leave a bit to be desired. This setting maps to this arg in the scoverage compiler
     // plugin, so we have to match its interface:

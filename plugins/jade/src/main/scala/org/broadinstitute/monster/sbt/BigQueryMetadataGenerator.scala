@@ -6,12 +6,7 @@ import io.circe.jawn.JawnParser
 import io.circe.syntax._
 import org.broadinstitute.monster.sbt.model.ColumnType.{Optional, _}
 import org.broadinstitute.monster.sbt.model.bigquery.BigQueryColumn
-import org.broadinstitute.monster.sbt.model.{
-  JadeIdentifier,
-  MonsterTable,
-  MonsterTableFragment,
-  SimpleColumn
-}
+import org.broadinstitute.monster.sbt.model.{MonsterTable, MonsterTableFragment, SimpleColumn}
 import sbt._
 import sbt.internal.util.ManagedLogger
 import sbt.nio.file.{FileAttributes, FileTreeView}
@@ -28,9 +23,9 @@ object BigQueryMetadataGenerator {
     *
     * @param inputDir directory containing table definitions in our JSON format
     * @param inputExtension file extension used for our table definitions
-    * @param fragmentDir     TODO
-    * @param fragmentExtension TODO
-    * @param outputDir      directory where BQ metadata files should be written
+    * @param fragmentDir directory containing partial table definitions in our JSON format
+    * @param fragmentExtension file extension used for partial table definitions
+    * @param outputDir directory where BQ metadata files should be written
     * @param fileView utility which can inspect the local filesystem
     * @param logger utility which can write logs to the sbt console
     */
@@ -62,11 +57,24 @@ object BigQueryMetadataGenerator {
     // Clean the directory before generating anything.
     IO.delete(outputDir)
 
+    // Make sure the schema is valid.
+    MonsterSchemaValidator
+      .validateSchema(sourceTables, fragments)
+      .fold(
+        errs =>
+          sys.error(
+            s"Cannot generate BigQuery metadata because of ${errs.length} validation errors"
+          ),
+        identity
+      )
+
     // Generate new files.
     val fragmentMap = fragments.map(f => f.name -> f).toMap
     sourceTables.flatMap { table =>
       logger.info(s"Generating BigQuery metadata for table ${table.name}")
-      val fragments = getRelevantFragments(table, fragmentMap).fold(sys.error, identity)
+      val fragments = table.tableFragments.foldLeft(List.empty[MonsterTableFragment]) { (acc, id) =>
+        fragmentMap(id) :: acc
+      }
       val schema = tableSchema(table, fragments)
       val pkCols = primaryKeyColumns(table, fragments)
       val compareCols = nonPrimaryKeyColumns(table, fragments)
@@ -82,21 +90,6 @@ object BigQueryMetadataGenerator {
       logger.info(s"Wrote BigQuery metadata to ${out.getAbsolutePath}/")
 
       Seq(schemaOut, pkOut, compareOut)
-    }
-  }
-
-  def getRelevantFragments(
-    table: MonsterTable,
-    fragments: Map[JadeIdentifier, MonsterTableFragment]
-  ): Either[String, Seq[MonsterTableFragment]] = {
-    val base: Either[String, List[MonsterTableFragment]] = Right(Nil)
-    table.tableFragments.foldLeft(base) { (acc, fragmentId) =>
-      for {
-        base <- acc
-        fragment <- fragments.get(fragmentId).toRight(s"No such fragment: $fragmentId")
-      } yield {
-        fragment :: base
-      }
     }
   }
 

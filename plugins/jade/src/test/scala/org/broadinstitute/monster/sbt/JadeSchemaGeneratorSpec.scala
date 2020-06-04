@@ -240,10 +240,7 @@ class JadeSchemaGeneratorSpec extends AnyFlatSpec with Matchers with EitherValue
       )
     )
 
-    JadeSchemaGenerator
-      .generateSchema(sourceTables, Nil)
-      .right
-      .value shouldBe expected
+    JadeSchemaGenerator.generateSchema(sourceTables, Nil) shouldBe expected
   }
 
   it should "flatten table fragments when building Jade schemas" in {
@@ -315,7 +312,7 @@ class JadeSchemaGeneratorSpec extends AnyFlatSpec with Matchers with EitherValue
       relationships = Set.empty
     )
 
-    schema.right.value shouldBe expected
+    schema shouldBe expected
   }
 
   it should "support relationships specified in a fragment" in {
@@ -418,26 +415,6 @@ class JadeSchemaGeneratorSpec extends AnyFlatSpec with Matchers with EitherValue
       )
     )
 
-    schema.right.value shouldBe expected
-  }
-
-  it should "fail to build schemas with invalid relationships" in {
-    // Missing the samples table referred to by the files table.
-    val sourceTables = List(participants, files)
-
-    val err = JadeSchemaGenerator
-      .generateSchema(sourceTables, Nil)
-      .left
-      .value
-
-    err should include(samples.name.id)
-    err should include("id")
-  }
-
-  it should "fail to build schemas with invalid fragment references" in {
-    val sourceTables = List(participants.copy(tableFragments = Vector(new JadeIdentifier("fake"))))
-    val err = JadeSchemaGenerator.generateSchema(sourceTables, Nil).left.value
-
-    err should include("fake")
+    schema shouldBe expected
   }
 }

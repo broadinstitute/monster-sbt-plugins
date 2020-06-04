@@ -21,8 +21,8 @@ object JadeSchemaGenerator {
     *
     * @param inputDir directory containing table definitions in our JSON format
     * @param inputExtension file extension used for our table definitions
-    * @param fragmentDir TODO
-    * @param fragmentExtension TODO
+    * @param fragmentDir directory containing partial table definitions in our JSON format
+    * @param fragmentExtension file extension used for partial table definitions
     * @param outputDir directory where the Jade schema should be written
     * @param fileView utility which can inspect the local filesystem
     * @param logger utility which can write logs to the sbt console
@@ -52,117 +52,84 @@ object JadeSchemaGenerator {
           .fold(err => sys.error(err.getLocalizedMessage), identity)
     }
 
+    MonsterSchemaValidator
+      .validateSchema(sourceTables, fragments)
+      .fold(
+        errs =>
+          sys.error(s"Cannot generate Jade schema because of ${errs.length} validation errors"),
+        identity
+      )
+
     logger.info(s"Generating Jade schema from ${sourceTables.length} input tables")
-    generateSchema(sourceTables, fragments) match {
-      case Left(err) => sys.error(err)
-      case Right(schemaModel) =>
-        val out = outputDir / "schema.json"
-        IO.write(out, schemaModel.asJson.noSpaces)
-        logger.info(s"Wrote Jade schema to ${out.getAbsolutePath}")
-        out
-    }
+    val schemaModel = generateSchema(sourceTables, fragments)
+    val out = outputDir / "schema.json"
+    IO.write(out, schemaModel.asJson.noSpaces)
+    logger.info(s"Wrote Jade schema to ${out.getAbsolutePath}")
+    out
   }
 
   /**
-    * Generate a Jade schema from a collection of Monster tables.
+    * Generate a Jade schema from a collection of Monster tables and
+    * potentially-referenced fragments.
     *
-    * @param tables collection of tables to include in the schema
+    * NOTE: Assumes there are no dangling references in the tables or fragments.
+    * Validate the schema before calling this method if that assumption doesn't hold.
     */
   def generateSchema(
     tables: Seq[MonsterTable],
     fragments: Seq[MonsterTableFragment]
-  ): Either[String, JadeSchema] = {
+  ): JadeSchema = {
     val fragmentMap = fragments.map(t => t.name -> t).toMap
 
-    val base: Either[String, List[MonsterTable]] = Right(Nil)
-    val flattenedTables = tables.foldLeft(base) { (acc, table) =>
-      acc.flatMap(tail => flattenFragments(table, fragmentMap).map(_ :: tail))
+    val flattenedTables = tables.foldLeft(List.empty[MonsterTable]) { (acc, table) =>
+      flattenFragments(table, fragmentMap) :: acc
     }
 
-    for {
-      tables <- flattenedTables
-      relationships <- extractRelationships(tables)
-    } yield {
-      JadeSchema(
-        tables = tables.map(convertTable).toSet,
-        relationships = relationships.toSet
-      )
-    }
+    JadeSchema(
+      tables = flattenedTables.map(convertTable).toSet,
+      relationships = extractRelationships(flattenedTables).toSet
+    )
   }
 
+  /** "Flatten" any fragments referenced by a table by pulling their columns to the top level. */
   private def flattenFragments(
     table: MonsterTable,
     fragments: Map[JadeIdentifier, MonsterTableFragment]
-  ): Either[String, MonsterTable] = {
-    val base: Either[String, MonsterTable] = Right(table.copy(tableFragments = Vector.empty))
-    table.tableFragments.foldLeft(base) { (acc, fragmentId) =>
-      acc.flatMap { baseTable =>
-        fragments.get(fragmentId).toRight(s"No such fragment: $fragmentId").flatMap { subTable =>
-          val existingColumns = baseTable.columns
-          val existingStructs = baseTable.structColumns
-
-          val newColumns = subTable.columns
-          val newStructs = subTable.structColumns
-
-          val columnOverlap = (existingColumns.map(_.name) ++ existingStructs.map(_.name))
-            .intersect(newColumns.map(_.name) ++ newStructs.map(_.name))
-
-          if (columnOverlap.nonEmpty) {
-            Left(s"Column conflict from fragment $fragmentId: ${columnOverlap.mkString(",")}")
-          } else {
-            Right(
-              baseTable.copy(
-                columns = existingColumns ++ newColumns,
-                structColumns = existingStructs ++ newStructs
-              )
-            )
-          }
-        }
-      }
+  ): MonsterTable =
+    table.tableFragments.foldLeft(table.copy(tableFragments = Vector.empty)) { (acc, fragmentId) =>
+      val subTable = fragments(fragmentId)
+      acc.copy(
+        columns = acc.columns ++ subTable.columns,
+        structColumns = acc.structColumns ++ subTable.structColumns
+      )
     }
-  }
 
   /**
     * Extract link fields from a collection of Monster tables, converting
     * them to Jade-compatible relationships.
     *
-    * @param tables tables to extract links from
+    * Assumes there are no dangling links.
     */
-  private def extractRelationships(
-    tables: Seq[MonsterTable]
-  ): Either[String, Seq[JadeRelationship]] = {
-    val columnsPerTable = tables.map { baseTable =>
-      baseTable.name -> baseTable.columns.map(_.name).toSet
-    }.toMap
-
-    tables.foldLeft[Either[String, List[JadeRelationship]]](Right(Nil)) { (acc, table) =>
-      acc.flatMap { relationshipsSoFar =>
-        val tableLinks = table.columns.flatMap(c => c.links.map(c.name -> _))
-        val tableRelationships =
-          tableLinks.foldLeft[Either[String, List[JadeRelationship]]](Right(Nil)) {
-            case (acc, (sourceName, link)) =>
-              acc.flatMap { relationshipsSoFar =>
-                Either.cond(
-                  columnsPerTable.get(link.tableName).exists(_.contains(link.columnName)),
-                  JadeRelationship(
-                    from = JadeRelationshipRef(
-                      table = table.name,
-                      column = sourceName
-                    ),
-                    to = JadeRelationshipRef(
-                      table = link.tableName,
-                      column = link.columnName
-                    )
-                  ) :: relationshipsSoFar,
-                  s"No such table/column pair: ${link.tableName}/${link.columnName}"
-                )
-              }
-          }
-
-        tableRelationships.map(_ ::: relationshipsSoFar)
+  private def extractRelationships(tables: Seq[MonsterTable]): Seq[JadeRelationship] =
+    tables.foldLeft(List.empty[JadeRelationship]) { (acc, table) =>
+      val tableLinks = table.columns.flatMap(c => c.links.map(c.name -> _))
+      val tableRelationships = tableLinks.foldLeft(List.empty[JadeRelationship]) {
+        case (relationshipsSoFar, (sourceName, link)) =>
+          val relationship = JadeRelationship(
+            from = JadeRelationshipRef(
+              table = table.name,
+              column = sourceName
+            ),
+            to = JadeRelationshipRef(
+              table = link.tableName,
+              column = link.columnName
+            )
+          )
+          relationship :: relationshipsSoFar
       }
+
+      tableRelationships ::: acc
     }
-  }
 
   /** Convert a Monster table to a Jade-compatible table. */
   private def convertTable(base: MonsterTable): JadeTable = {
