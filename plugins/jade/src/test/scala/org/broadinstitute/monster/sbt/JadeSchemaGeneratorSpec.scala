@@ -240,22 +240,181 @@ class JadeSchemaGeneratorSpec extends AnyFlatSpec with Matchers with EitherValue
       )
     )
 
-    JadeSchemaGenerator
-      .generateSchema(sourceTables)
-      .right
-      .value shouldBe expected
+    JadeSchemaGenerator.generateSchema(sourceTables, Nil) shouldBe expected
   }
 
-  it should "fail to build schemas with invalid relationships" in {
-    // Missing the samples table referred to by the files table.
-    val sourceTables = List(participants, files)
+  it should "flatten table fragments when building Jade schemas" in {
+    val fragment = MonsterTableFragment(
+      name = new JadeIdentifier("shared"),
+      columns = Vector(
+        SimpleColumn(
+          name = new JadeIdentifier("internal_id"),
+          datatype = DataType.Timestamp,
+          `type` = ColumnType.PrimaryKey
+        ),
+        SimpleColumn(
+          name = new JadeIdentifier("audit_flags"),
+          datatype = DataType.String,
+          `type` = ColumnType.Repeated
+        )
+      )
+    )
 
-    val err = JadeSchemaGenerator
-      .generateSchema(sourceTables)
-      .left
-      .value
+    val schema = JadeSchemaGenerator.generateSchema(
+      List(participants.copy(tableFragments = Vector(fragment.name))),
+      List(fragment)
+    )
 
-    err should include(samples.name.id)
-    err should include("id")
+    val expected = JadeSchema(
+      tables = Set(
+        JadeTable(
+          name = participants.name,
+          columns = Set(
+            JadeColumn(
+              name = new JadeIdentifier("id"),
+              datatype = DataType.String,
+              arrayOf = false
+            ),
+            JadeColumn(
+              name = new JadeIdentifier("age"),
+              datatype = DataType.Integer,
+              arrayOf = false
+            ),
+            JadeColumn(
+              name = new JadeIdentifier("attributes"),
+              datatype = DataType.String,
+              arrayOf = false
+            ),
+            JadeColumn(
+              name = new JadeIdentifier("internal_id"),
+              datatype = DataType.Timestamp,
+              arrayOf = false
+            ),
+            JadeColumn(
+              name = new JadeIdentifier("audit_flags"),
+              datatype = DataType.String,
+              arrayOf = true
+            )
+          ),
+          primaryKey = Set(new JadeIdentifier("id"), new JadeIdentifier("internal_id")),
+          partitionMode = JadePartitionMode.Int,
+          datePartitionOptions = None,
+          intPartitionOptions = Some {
+            JadeIntPartitionOptions(
+              column = new JadeIdentifier("age"),
+              min = 0L,
+              max = 120L,
+              interval = 1L
+            )
+          }
+        )
+      ),
+      relationships = Set.empty
+    )
+
+    schema shouldBe expected
+  }
+
+  it should "support relationships specified in a fragment" in {
+    val fragment = MonsterTableFragment(
+      name = new JadeIdentifier("shared"),
+      columns = Vector(
+        SimpleColumn(
+          name = new JadeIdentifier("emr_id"),
+          datatype = DataType.String,
+          links = Vector(
+            Link(
+              tableName = new JadeIdentifier("emr"),
+              columnName = new JadeIdentifier("id")
+            )
+          )
+        )
+      )
+    )
+
+    val emrs = MonsterTable(
+      name = new JadeIdentifier("emr"),
+      columns = Vector(
+        SimpleColumn(
+          name = new JadeIdentifier("id"),
+          datatype = DataType.String,
+          `type` = ColumnType.PrimaryKey
+        )
+      )
+    )
+
+    val schema = JadeSchemaGenerator.generateSchema(
+      List(participants.copy(tableFragments = Vector(fragment.name)), emrs),
+      List(fragment)
+    )
+
+    val expected = JadeSchema(
+      tables = Set(
+        JadeTable(
+          name = participants.name,
+          columns = Set(
+            JadeColumn(
+              name = new JadeIdentifier("id"),
+              datatype = DataType.String,
+              arrayOf = false
+            ),
+            JadeColumn(
+              name = new JadeIdentifier("age"),
+              datatype = DataType.Integer,
+              arrayOf = false
+            ),
+            JadeColumn(
+              name = new JadeIdentifier("attributes"),
+              datatype = DataType.String,
+              arrayOf = false
+            ),
+            JadeColumn(
+              name = new JadeIdentifier("emr_id"),
+              datatype = DataType.String,
+              arrayOf = false
+            )
+          ),
+          primaryKey = Set(new JadeIdentifier("id")),
+          partitionMode = JadePartitionMode.Int,
+          datePartitionOptions = None,
+          intPartitionOptions = Some {
+            JadeIntPartitionOptions(
+              column = new JadeIdentifier("age"),
+              min = 0L,
+              max = 120L,
+              interval = 1L
+            )
+          }
+        ),
+        JadeTable(
+          name = emrs.name,
+          columns = Set(
+            JadeColumn(
+              name = new JadeIdentifier("id"),
+              datatype = DataType.String,
+              arrayOf = false
+            )
+          ),
+          primaryKey = Set(new JadeIdentifier("id")),
+          partitionMode = JadePartitionMode.Date,
+          datePartitionOptions = Some(JadeDatePartitionOptions.IngestDate),
+          intPartitionOptions = None
+        )
+      ),
+      relationships = Set(
+        JadeRelationship(
+          from = JadeRelationshipRef(
+            table = participants.name,
+            column = new JadeIdentifier("emr_id")
+          ),
+          to = JadeRelationshipRef(
+            table = emrs.name,
+            column = new JadeIdentifier("id")
+          )
+        )
+      )
+    )
+
+    schema shouldBe expected
   }
 }

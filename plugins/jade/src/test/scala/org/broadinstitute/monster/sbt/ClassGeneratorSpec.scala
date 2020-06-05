@@ -1,5 +1,6 @@
 package org.broadinstitute.monster.sbt
 
+import org.broadinstitute.monster.sbt.model.{MonsterTable, MonsterTableFragment}
 import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -8,11 +9,13 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
   behavior of "ClassGenerator"
 
   private val testPackage = "foo.bar"
+  private val fragmentPackage = "xyz.abc"
   private val structPackage = testPackage.reverse
 
   def checkTableGeneration(description: String, input: String, output: String): Unit =
     it should description in {
-      val out = ClassGenerator.generateTableClass(testPackage, structPackage, input)
+      val out = ClassGenerator
+        .generateTableClass[MonsterTable](testPackage, fragmentPackage, structPackage, input)
       out.right.value shouldBe output
     }
 
@@ -21,9 +24,21 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
     input: String,
     error: String
   ): Unit = it should description in {
-    val out = ClassGenerator.generateTableClass(testPackage, structPackage, input)
+    val out = ClassGenerator
+      .generateTableClass[MonsterTable](testPackage, fragmentPackage, structPackage, input)
     out.left.value.getMessage should include(error)
   }
+
+  def checkFragmentGeneration(description: String, input: String, output: String): Unit =
+    it should description in {
+      val out = ClassGenerator.generateTableClass[MonsterTableFragment](
+        fragmentPackage,
+        fragmentPackage,
+        structPackage,
+        input
+      )
+      out.right.value shouldBe output
+    }
 
   def checkStructGeneration(description: String, input: String, output: String): Unit =
     it should description in {
@@ -488,6 +503,87 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |  def init(): RepeatedStruct = {
        |    RepeatedStruct(
        |      repeatedComment = _root_.scala.collection.immutable.List.empty[_root_.$structPackage.Comment123])
+       |  }
+       |}
+       |""".stripMargin
+  )
+
+  it should behave like checkTableGeneration(
+    "generate table-fragment references",
+    s"""{
+       |  "name": "composed_table",
+       |  "columns": [
+       |    {
+       |      "name": "id",
+       |      "datatype": "integer",
+       |      "type": "primary_key"
+       |    }
+       |  ],
+       |  "table_fragments": ["other_table", "third_table"]
+       |}""".stripMargin,
+    s"""package $testPackage
+       |
+       |case class ComposedTable(
+       |id: _root_.scala.Long,
+       |otherTable: _root_.scala.Option[_root_.$fragmentPackage.OtherTable],
+       |thirdTable: _root_.scala.Option[_root_.$fragmentPackage.ThirdTable])
+       |
+       |object ComposedTable {
+       |  val composedKeys: _root_.scala.collection.immutable.Set[_root_.java.lang.String] =
+       |    _root_.scala.collection.immutable.Set("other_table", "third_table")
+       |
+       |  implicit val encoder: _root_.io.circe.Encoder[ComposedTable] =
+       |    _root_.io.circe.derivation.deriveEncoder(
+       |      _root_.io.circe.derivation.renaming.snakeCase,
+       |      _root_.scala.None
+       |    ).mapJsonObject { obj =>
+       |      val composed = obj.filterKeys(composedKeys.contains(_))
+       |      val notComposed = obj.filterKeys(!composedKeys.contains(_))
+       |
+       |      composed.toIterable.foldLeft(notComposed) {
+       |        case (acc, (_, subTable)) => acc.deepMerge(subTable)
+       |      }
+       |    }
+       |
+       |  def init(
+       |    id: _root_.scala.Long): ComposedTable = {
+       |    ComposedTable(
+       |      id = id,
+       |      otherTable = _root_.scala.Option.empty[_root_.$fragmentPackage.OtherTable],
+       |      thirdTable = _root_.scala.Option.empty[_root_.$fragmentPackage.ThirdTable])
+       |  }
+       |}
+       |""".stripMargin
+  )
+
+  it should behave like checkFragmentGeneration(
+    "generate table-fragment classes",
+    s"""{
+       |  "name": "fragment_class",
+       |  "columns": [
+       |    {
+       |      "name": "id",
+       |      "datatype": "integer",
+       |      "type": "primary_key"
+       |    }
+       |  ]
+       |}""".stripMargin,
+    s"""package $fragmentPackage
+       |
+       |case class FragmentClass(
+       |id: _root_.scala.Long)
+       |
+       |object FragmentClass {
+       |  implicit val encoder: _root_.io.circe.Encoder[FragmentClass] =
+       |    _root_.io.circe.derivation.deriveEncoder(
+       |      _root_.io.circe.derivation.renaming.snakeCase,
+       |      _root_.scala.None
+       |    )
+       |
+       |  def init(
+       |    id: _root_.scala.Long): FragmentClass = {
+       |    FragmentClass(
+       |      id = id)
        |  }
        |}
        |""".stripMargin
