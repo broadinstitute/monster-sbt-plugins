@@ -170,7 +170,7 @@ object ClassGenerator {
            |      val notComposed = obj.filterKeys(!$composedKeySet.contains(_))
            |
            |      composed.toIterable.foldLeft(notComposed) {
-           |        case (acc, (_, subTable)) => acc.deepMerge(subTable)
+           |        case (acc, (_, subTable)) => acc.deepMerge(subTable.asObject.get)
            |      }
            |    }
            |

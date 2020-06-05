@@ -541,7 +541,7 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |      val notComposed = obj.filterKeys(!composedKeys.contains(_))
        |
        |      composed.toIterable.foldLeft(notComposed) {
-       |        case (acc, (_, subTable)) => acc.deepMerge(subTable)
+       |        case (acc, (_, subTable)) => acc.deepMerge(subTable.asObject.get)
        |      }
        |    }
        |
